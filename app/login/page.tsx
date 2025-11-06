@@ -22,7 +22,7 @@ export default function LoginPage() {
     e.preventDefault()
     setError("")
 
-    const res = await fetch("http://localhost:8081/api/auth/login", {
+    const res = await fetch("http://localhost:8082/api/v1/auth/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -40,6 +40,11 @@ export default function LoginPage() {
 
     const data = await res.json()
     console.log("로그인 결과:", data) // access_token 있을 거야
+
+    
+    // ✅ access_token 저장
+    localStorage.setItem("access_token", data.access_token)
+
 
     login(email)
     const redirect = searchParams.get("redirect")
@@ -60,7 +65,7 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="text"
-                placeholder="demo@company.com"
+                placeholder="user@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
