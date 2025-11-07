@@ -12,6 +12,11 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Report API용 인증 불필요 axios 인스턴스
+const apiNoAuth = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8082",
+});
+
 export default api;
 
 export async function postJSON<TReq, TRes>(path: string, body: TReq): Promise<TRes> {
@@ -82,4 +87,67 @@ export async function verifyOtp(email: string, code: string) {
   });
   if (!r.ok) throw new Error((await r.text()) || "인증번호가 유효하지 않습니다");
   return r.json();
+}
+
+// ====================================
+// Report API
+// ====================================
+
+export interface ReportResponse {
+  id: number;
+  userId: number;
+  cveId: string;
+  name: string;
+  status: string;
+  fileUrl: string;
+  presignedDownloadUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PresignedUrlResponse {
+  presignedUrl: string;
+  expiresInMinutes: number;
+}
+
+export async function createReport(
+  userId: number,
+  cveId: string,
+  name: string
+): Promise<ReportResponse> {
+  const response = await apiNoAuth.post<ReportResponse>("/api/reports", {
+    userId,
+    cveId,
+    name,
+  });
+  return response.data;
+}
+
+export async function getMyReports(userId: number): Promise<ReportResponse[]> {
+  const response = await apiNoAuth.get<ReportResponse[]>("/api/reports/me", {
+    params: { userId },
+  });
+  return response.data;
+}
+
+export async function getReportDownloadUrl(
+  reportId: number,
+  userId: number
+): Promise<PresignedUrlResponse> {
+  const response = await apiNoAuth.get<PresignedUrlResponse>(
+    `/api/reports/${reportId}/download`,
+    {
+      params: { userId },
+    }
+  );
+  return response.data;
+}
+
+export async function deleteReport(
+  reportId: number,
+  userId: number
+): Promise<void> {
+  await apiNoAuth.delete(`/api/reports/${reportId}`, {
+    params: { userId },
+  });
 }

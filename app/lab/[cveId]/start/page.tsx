@@ -9,6 +9,8 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { AuthGuard } from "@/lib/auth-context";
 import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { LabGuidePanel } from "@/components/lab-guide-panel";
+import { useToast } from "@/hooks/use-toast";
+import { createReport } from "@/lib/api";
 
 const INITIAL_TIME = 1 * 60 * 60; // 1 hour in seconds
 
@@ -28,6 +30,7 @@ export default function LabStartPage({
 }) {
   const { cveId } = use(params);
   const router = useRouter();
+  const { toast } = useToast();
   const [vmStatus, setVmStatus] = useState<"idle" | "creating" | "ready">(
     "idle"
   );
@@ -38,6 +41,7 @@ export default function LabStartPage({
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showTimeoutDialog, setShowTimeoutDialog] = useState(false);
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
+  const [isCreatingReport, setIsCreatingReport] = useState(false);
 
   const metadata = cveMetadata[cveId] || {
     title: cveId,
@@ -81,12 +85,34 @@ export default function LabStartPage({
     router.push("/");
   };
 
-  const handleOpenReport = () => {
-    window.open(
-      `/reports/new?cveId=${cveId}`,
-      "_blank",
-      "width=1200,height=800"
-    );
+  const handleOpenReport = async () => {
+    setIsCreatingReport(true);
+    try {
+      const userId = 1; // TODO: 실제 userId 획득 로직 추가 필요
+      const reportName = `${cveId}_보고서_${new Date().toISOString().split('T')[0]}`;
+      
+      // S3에 템플릿 복사 및 DB 레코드 생성
+      const report = await createReport(userId, cveId, reportName);
+      
+      // 새 탭에서 워드 파일 열기 (바로 편집 가능)
+      if (report.presignedDownloadUrl) {
+        window.open(report.presignedDownloadUrl, '_blank');
+      }
+      
+      toast({
+        title: "보고서가 생성되었습니다",
+        description: "새 탭에서 워드 파일을 다운로드하여 편집하세요. 수정 후 '작성한 보고서'에서 업로드할 수 있습니다.",
+      });
+    } catch (error) {
+      console.error("보고서 생성 실패:", error);
+      toast({
+        title: "보고서 생성 실패",
+        description: "보고서 생성 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingReport(false);
+    }
   };
 
   return (
@@ -95,8 +121,20 @@ export default function LabStartPage({
         <div className="border-b border-border bg-card px-4 py-3">
           <div className="mx-auto max-w-7xl flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <Button onClick={handleOpenReport} variant="outline" size="sm">
-                보고서 작성
+              <Button 
+                onClick={handleOpenReport} 
+                variant="outline" 
+                size="sm"
+                disabled={isCreatingReport}
+              >
+                {isCreatingReport ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    생성 중...
+                  </>
+                ) : (
+                  "보고서 작성"
+                )}
               </Button>
               <Button
                 onClick={() => setShowCreateVmDialog(true)}
