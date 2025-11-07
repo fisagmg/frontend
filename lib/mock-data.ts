@@ -1,3 +1,4 @@
+// lib/mock-data.ts
 export interface NewsItem {
   id: number
   title: string
@@ -29,11 +30,23 @@ export interface CVEItem {
     | "Cryptography"
     | "IoT/Device"
   overview?: string
-  realWorldCases?: string
-  technicalDetails?: string
   impactScope?: string
   mitigation?: string
   references?: string[]
+  
+  // 🔥 새로 추가된 필드들
+  nvdUrl?: string
+  target?: string[]
+  attackComplexity?: string
+  privilegesRequired?: string
+  whyDangerous?: string
+  attackScenario?: string
+  labEnvironment?: {
+    victim: { description: string; ip: string }
+    attacker: { description: string; ip: string }
+  }
+  prerequisites?: string[]
+  keyTakeaways?: string[]
 }
 
 export interface Report {
@@ -58,6 +71,7 @@ const getSeverityFromCvss = (cvssScore: number): "Low" | "Medium" | "High" | "Cr
   return cvssScore >= 9.0 ? "Critical" : cvssScore >= 7.0 ? "High" : cvssScore >= 4.0 ? "Medium" : "Low"
 }
 
+// News는 그대로 유지
 export const mockNews: NewsItem[] = [
   {
     id: 1,
@@ -99,72 +113,103 @@ export const mockNews: NewsItem[] = [
   })),
 )
 
-export const mockCVEs: CVEItem[] = Array.from({ length: 50 }, (_, i) => {
-  const year = 2024 - Math.floor(i / 10)
-  const num = String(10000 + i).padStart(5, "0")
-  const cvssScore = 3.0 + (i % 8) * 0.9
-  const severity = getSeverityFromCvss(cvssScore)
+// 🔥 CVE 데이터 - 실제 데이터로 교체
+export const mockCVEs: CVEItem[] = [
+  // CVE-2025-1302: JSONPath-Plus RCE
+  {
+    id: "CVE-2025-1302",
+    title: "JSONPath-Plus 원격 코드 실행 취약점",
+    cvssScore: 9.8,
+    severity: "Critical",
+    summary: "JSONPath-Plus의 vm 샌드박스 우회로 인한 원격 코드 실행 취약점",
+    tags: ["RCE", "Node.js", "Sandbox Escape", "npm", "Exploit"],
+    publishedDate: "2025-02-15",
+    os: "Other",
+    domain: "Application",
+    
+    // Quick Info
+    nvdUrl: "https://nvd.nist.gov/vuln/detail/CVE-2025-1302",
+    target: ["JSONPath-Plus < 10.3.0", "kubernetes-client", "860+ npm packages"],
+    attackComplexity: "Low",
+    privilegesRequired: "None",
+    
+    // Overview
+    overview: 
+    ` • JSONPath-Plus는 JSON 데이터에서 특정 값을 추출하는 오픈소스 라이브러리
+      • npm 생태계에서 860개 이상의 패키지에 의존
+      • 이 취약점은 Node.js vm 모듈의 샌드박스 탈출 취약점(CVE-2024-21534)의 불완전한 패치로 인해 발생
+      • 블랙리스트 기반 필터링이 우회 가능하여, 공격자가 악의적인 JSONPath 표현식을 통해 서버에서 임의의 코드 실행 가능`,
+    
+    whyDangerous: 
+    `• 광범위한 영향: kubernetes-client를 포함한 수많은 프로덕션 환경에서 사용
+    • 체이닝 공격 가능: 초기 침투 후 권한 상승, 데이터 탈취, 랜섬웨어 설치 등 연계 공격
+    • 탐지 어려움: 정상적인 JSON 쿼리로 위장 가능`,
+    
+    attackScenario: 
+    `1. Initial Access: 공격자가 취약한 JSONPath-Plus를 사용하는 API 엔드포인트에 악의적 쿼리 전송
 
-  const exploitTag = i % 2 === 0 ? "Exploit" : "PoC"
+    2. Execution: vm 샌드박스를 우회하여 임의의 Node.js 코드 실행
 
-  const envTags = ["Windows", "Linux", "macOS", "iOS", "Android", "Network", "Container", "Cloud"]
-  const selectedEnvTags = [envTags[i % 8], envTags[(i + 1) % 8]]
-    .filter((tag, index, self) => self.indexOf(tag) === index)
-    .slice(0, 2)
+    3. Persistence: 리버스 쉘을 통해 서버 제어권 확보
 
-  const tags = [exploitTag, ...selectedEnvTags]
-
-  const osOptions: CVEItem["os"][] = ["Windows", "Linux", "macOS", "iOS", "Android", "Other"]
-  const domainOptions: CVEItem["domain"][] = [
-    "Network",
-    "Web Application",
-    "Database",
-    "OS/Kernel",
-    "Application",
-    "Cloud",
-    "Container",
-    "Authentication",
-    "Cryptography",
-    "IoT/Device",
-  ]
-
-  return {
-    id: `CVE-${year}-${num}`,
-    title: `CVE-${year}-${num}`,
-    cvssScore: Number(cvssScore.toFixed(1)),
-    severity,
-    summary: `원격 코드 실행 취약점 - ${["Apache", "Nginx", "Windows", "Linux"][i % 4]} 시스템에서 발견된 보안 취약점`,
-    tags,
-    publishedDate: `2024-${String((i % 12) + 1).padStart(2, "0")}-${String((i % 28) + 1).padStart(2, "0")}`,
-    os: osOptions[i % osOptions.length],
-    domain: domainOptions[i % domainOptions.length],
-    overview: `이 취약점은 ${["Apache", "Nginx", "Windows", "Linux"][i % 4]} 시스템의 핵심 컴포넌트에서 발견되었습니다. 공격자가 이를 악용할 경우 원격에서 임의의 코드를 실행할 수 있습니다.`,
-    realWorldCases: `2024년 ${(i % 12) + 1}월, 이 취약점을 악용한 실제 공격 사례가 보고되었습니다. 공격자는 이를 통해 시스템 권한을 획득하고 민감한 데이터에 접근했습니다.`,
-    technicalDetails: `취약점은 입력 검증 부족으로 인해 발생합니다. 특정 API 엔드포인트에서 사용자 입력을 적절히 검증하지 않아 버퍼 오버플로우가 발생할 수 있습니다.`,
-    impactScope: `영향받는 버전: ${["2.4.x", "1.20.x", "Server 2019", "Kernel 5.x"][i % 4]}. 인터넷에 노출된 모든 시스템이 위험에 처해 있으며, 특히 기본 설정을 사용하는 경우 더욱 취약합니다.`,
-    mitigation: `즉시 최신 보안 패치를 적용하십시오. 패치가 불가능한 경우, 방화벽 규칙을 통해 해당 포트에 대한 외부 접근을 차단하고 WAF를 구성하십시오.`,
-    references: [
-      "https://nvd.nist.gov/vuln/detail/CVE-2024-xxxxx",
-      "https://www.cisa.gov/known-exploited-vulnerabilities",
-      "https://github.com/advisories/GHSA-xxxx-xxxx-xxxx",
+    4. Impact: 크립토마이너 설치 또는 데이터 암호화(랜섬웨어)`,
+    
+    // Lab Environment
+    labEnvironment: {
+      victim: {
+        description: "Node.js + JSONPath-Plus 10.2.0",
+        ip: "10.233.3.66"
+      },
+      attacker: {
+        description: "Kali Linux",
+        ip: "10.233.78.36"
+      }
+    },
+    prerequisites: [
+      "Node.js 18.x 이상",
+      "npm 또는 yarn",
+      "기본적인 JavaScript 지식"
     ],
+    
+    mitigation: `• JSONPath-Plus 10.3.0 이상으로 업그레이드
+• Input validation 강화: 사용자 입력을 JSONPath 쿼리로 사용하지 않기
+• 샌드박스 환경 개선: isolated-vm 등 더 안전한 대안 고려
+• 모니터링 강화: 비정상적인 프로세스 실행 탐지`,
+    
+    keyTakeaways: [
+      "의존성 관리의 중요성: 오픈소스 라이브러리의 버전을 항상 최신으로 유지",
+      "블랙리스트 필터링의 한계: 화이트리스트 기반 접근이 더 안전",
+      "샌드박스 != 완전한 격리: vm 모듈의 한계 이해 필요",
+      "Defense in Depth: 여러 계층의 보안 통제 필요"
+    ],
+    
+    references: [
+      "https://nvd.nist.gov/vuln/detail/CVE-2025-1302",
+      "https://github.com/JSONPath-Plus/JSONPath",
+      "https://nvd.nist.gov/vuln/detail/CVE-2024-21534"
+    ]
   }
-})
+]
 
-export const mockReports: Report[] = Array.from({ length: 15 }, (_, i) => ({
-  id: i + 1,
-  reportName: `${mockCVEs[i].id} 실습 보고서`,
-  cveName: mockCVEs[i].title,
-  cveId: mockCVEs[i].id,
-  content: `# ${mockCVEs[i].id} 실습 보고서\n\n## 실습 개요\n이 보고서는 ${mockCVEs[i].id} 취약점에 대한 실습 내용을 담고 있습니다.\n\n## 실습 내용\n...\n\n## 결론\n...`,
-  createdAt: `2024-${String((i % 12) + 1).padStart(2, "0")}-${String((i % 28) + 1).padStart(2, "0")}`,
-}))
+// Reports와 LabHistory는 첫 번째 CVE 기준으로 생성
+export const mockReports: Report[] = [
+  {
+    id: 1,
+    reportName: `${mockCVEs[0].id} 실습 보고서`,
+    cveName: mockCVEs[0].title,
+    cveId: mockCVEs[0].id,
+    content: `# ${mockCVEs[0].id} 실습 보고서\n\n## 실습 개요\n이 보고서는 ${mockCVEs[0].id} 취약점에 대한 실습 내용을 담고 있습니다.\n\n## 실습 내용\n...\n\n## 결론\n...`,
+    createdAt: mockCVEs[0].publishedDate,
+  }
+]
 
-export const mockLabHistory: LabHistory[] = Array.from({ length: 12 }, (_, i) => ({
-  id: mockCVEs[i].id,
-  title: mockCVEs[i].title,
-  severity: mockCVEs[i].severity,
-  summary: mockCVEs[i].summary,
-  tags: mockCVEs[i].tags,
-  completedAt: `2024-${String((i % 12) + 1).padStart(2, "0")}-${String((i % 28) + 1).padStart(2, "0")}`,
-}))
+export const mockLabHistory: LabHistory[] = [
+  {
+    id: mockCVEs[0].id,
+    title: mockCVEs[0].title,
+    severity: mockCVEs[0].severity,
+    summary: mockCVEs[0].summary,
+    tags: mockCVEs[0].tags,
+    completedAt: mockCVEs[0].publishedDate,
+  }
+]
