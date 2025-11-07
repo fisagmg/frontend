@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/lib/auth-context"
+import { getApiBaseUrl } from "@/lib/api"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -22,7 +23,7 @@ export default function LoginPage() {
     e.preventDefault()
     setError("")
 
-    const res = await fetch("http://localhost:8082/api/v1/auth/login", {
+    const res = await fetch(`${getApiBaseUrl()}/api/v1/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
