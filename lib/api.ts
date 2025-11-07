@@ -1,7 +1,16 @@
 import axios from "axios";
 
+// 환경변수에서 API 베이스 URL 가져오기
+function getApiBaseUrl(): string {
+  const base = process.env.NEXT_PUBLIC_API_BASE;
+  if (!base) {
+    throw new Error("환경변수 NEXT_PUBLIC_API_BASE 가 설정되어 있지 않습니다");
+  }
+  return base;
+}
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8082",
+  baseURL: getApiBaseUrl(),
 });
 
 api.interceptors.request.use((config) => {
@@ -19,9 +28,11 @@ const apiNoAuth = axios.create({
 
 export default api;
 
+// API 베이스 URL을 외부에서도 사용할 수 있도록 export
+export { getApiBaseUrl };
+
 export async function postJSON<TReq, TRes>(path: string, body: TReq): Promise<TRes> {
-  const base = process.env.NEXT_PUBLIC_API_BASE;
-  if (!base) throw new Error("환경변수 NEXT_PUBLIC_API_BASE 가 설정되어 있지 않습니다");
+  const base = getApiBaseUrl();
   const res = await fetch(`${base}${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -70,8 +81,7 @@ export function signup(req: SignupRequest) {
 }
 
 export async function sendOtp(email: string) {
-  const base = process.env.NEXT_PUBLIC_API_BASE;
-  if (!base) throw new Error("환경변수 NEXT_PUBLIC_API_BASE 가 설정되어 있지 않습니다");
+  const base = getApiBaseUrl();
   const r = await fetch(`${base}/api/v1/auth/otp/send?email=${encodeURIComponent(email)}`, {
     method: "POST",
   });
@@ -80,8 +90,7 @@ export async function sendOtp(email: string) {
 }
 
 export async function verifyOtp(email: string, code: string) {
-  const base = process.env.NEXT_PUBLIC_API_BASE;
-  if (!base) throw new Error("환경변수 NEXT_PUBLIC_API_BASE 가 설정되어 있지 않습니다");
+  const base = getApiBaseUrl();
   const r = await fetch(`${base}/api/v1/auth/otp/verify?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, {
     method: "POST",
   });
