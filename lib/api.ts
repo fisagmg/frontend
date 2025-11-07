@@ -119,6 +119,13 @@ export interface PresignedUrlResponse {
   expiresInMinutes: number;
 }
 
+export interface ReportUploadResponse {
+  reportId: number;
+  fileUrl: string;
+  version: number;
+  message: string;
+}
+
 export async function createReport(
   userId: number,
   cveId: string,
@@ -159,4 +166,24 @@ export async function deleteReport(
   await apiNoAuth.delete(`/api/reports/${reportId}`, {
     params: { userId },
   });
+}
+
+export async function uploadReportFile(
+  reportId: number,
+  userId: number,
+  file: File
+): Promise<ReportUploadResponse> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await apiNoAuth.put<ReportUploadResponse>(
+    `/api/reports/${reportId}/file?userId=${userId}`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+  return response.data;
 }

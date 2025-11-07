@@ -8,7 +8,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog"
 import { FileText, Trash2, Download, Upload } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Badge } from "@/components/ui/badge"
-import { ReportResponse, getMyReports, getReportDownloadUrl, deleteReport } from "@/lib/api"
+import { ReportResponse, getMyReports, getReportDownloadUrl, deleteReport, uploadReportFile } from "@/lib/api"
 
 const ITEMS_PER_PAGE = 10
 
@@ -92,21 +92,23 @@ export function MypageReports() {
 
     setUploadingId(reportId)
     try {
-      // TODO: Phase 2에서 구현
-      // 1. getUploadUrl(reportId, userId) - presigned PUT URL 받기
-      // 2. uploadToS3(presignedUrl, file) - S3에 직접 업로드
-      // 3. notifyUploadComplete(reportId, userId) - updated_at 갱신
+      const userId = 1 // TODO: 실제 userId 획득
+      
+      // 백엔드로 파일 업로드 (S3 덮어쓰기)
+      await uploadReportFile(reportId, userId, file)
+      
+      // 업로드 성공 후 목록 새로고침
+      await loadReports()
       
       toast({
-        title: "업로드 기능 준비 중",
-        description: "Phase 2에서 구현 예정입니다.",
-        variant: "destructive",
+        title: "업로드 완료",
+        description: "보고서가 성공적으로 업데이트되었습니다.",
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error("업로드 실패:", error)
       toast({
         title: "업로드 실패",
-        description: "파일 업로드 중 오류가 발생했습니다.",
+        description: error.response?.data?.message || "파일 업로드 중 오류가 발생했습니다.",
         variant: "destructive",
       })
     } finally {
