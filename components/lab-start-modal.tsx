@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useRouter } from "next/navigation"
+import { useRouter } from "next/navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,29 +10,31 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
 
 interface LabStartModalProps {
-  cveId: string | null
-  onClose: () => void
+  cveId: string | null;
+  onClose: () => void;
 }
 
 export function LabStartModal({ cveId, onClose }: LabStartModalProps) {
-  const router = useRouter()
+  const router = useRouter();
 
   const handleStart = () => {
     if (cveId) {
-      router.push(`/lab/${cveId}/start`)
+      router.push(`/lab/${cveId}/start`);
     }
-    onClose()
-  }
+    onClose();
+  };
 
   return (
     <AlertDialog open={!!cveId} onOpenChange={(open) => !open && onClose()}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>이 CVE로 실습을 시작할까요?</AlertDialogTitle>
-          <AlertDialogDescription>학습 환경으로 이동하여 실습을 시작합니다.</AlertDialogDescription>
+          <AlertDialogDescription>
+            학습 환경으로 이동하여 실습을 시작합니다.
+          </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>취소</AlertDialogCancel>
@@ -40,5 +42,5 @@ export function LabStartModal({ cveId, onClose }: LabStartModalProps) {
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  )
+  );
 }
