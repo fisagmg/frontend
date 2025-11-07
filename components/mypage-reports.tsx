@@ -5,64 +5,140 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Pagination } from "@/components/pagination"
 import { ConfirmDialog } from "@/components/confirm-dialog"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { FileText, Trash2, Eye } from "lucide-react"
+import { FileText, Trash2, Download, Upload } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Badge } from "@/components/ui/badge"
+import { ReportResponse, getMyReports, getReportDownloadUrl, deleteReport } from "@/lib/api"
 
 const ITEMS_PER_PAGE = 10
 
-interface Report {
-  id: number
-  cveId: string
-  cveName: string
-  objective: string
-  steps: string
-  commands: string
-  reproduction: string
-  resultSummary: string
-  issues: string
-  fixes: string
-  learnings: string
-  difficulty: string
-  fileNames: string[]
-  createdAt: string
+// Mock CVE 데이터 (실제로는 API에서 가져와야 함)
+const mockCVEs: Record<string, { title: string; cvss: number; category: string; summary: string; tags: string[] }> = {
+  "CVE-2025-1302": {
+    title: "JSONPath-Plus RCE 취약점",
+    cvss: 9.8,
+    category: "Critical",
+    summary: "JSONPath-Plus 라이브러리의 원격 코드 실행 취약점",
+    tags: ["RCE", "JavaScript", "Node.js"]
+  },
+  "CVE-2024-TEST": {
+    title: "테스트 취약점",
+    cvss: 7.5,
+    category: "High",
+    summary: "테스트용 CVE 설명",
+    tags: ["Test", "Security"]
+  }
 }
 
 export function MypageReports() {
   const [currentPage, setCurrentPage] = useState(1)
-  const [reports, setReports] = useState<Report[]>([])
+  const [reports, setReports] = useState<ReportResponse[]>([])
   const [deleteId, setDeleteId] = useState<number | null>(null)
-  const [viewReport, setViewReport] = useState<Report | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [uploadingId, setUploadingId] = useState<number | null>(null)
   const { toast } = useToast()
 
-  useEffect(() => {
-    const savedReports = JSON.parse(localStorage.getItem("practice-reports") || "[]")
-    setReports(savedReports)
-  }, [])
-
-  const handleDelete = (id: number) => {
-    const updatedReports = reports.filter((r) => r.id !== id)
-    setReports(updatedReports)
-    localStorage.setItem("practice-reports", JSON.stringify(updatedReports))
-    setDeleteId(null)
-
-    toast({
-      title: "보고서가 삭제되었습니다",
-    })
+  const loadReports = async () => {
+    try {
+      setIsLoading(true)
+      const userId = 1 // TODO: 실제 userId 획득
+      const data = await getMyReports(userId)
+      setReports(data)
+    } catch (error) {
+      console.error("보고서 목록 조회 실패:", error)
+      toast({
+        title: "보고서 목록 조회 실패",
+        description: "보고서 목록을 불러오는 중 오류가 발생했습니다.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const getReproductionBadge = (reproduction: string) => {
-    switch (reproduction) {
-      case "success":
-        return <Badge className="bg-green-600">성공</Badge>
-      case "partial":
-        return <Badge className="bg-yellow-600">부분 성공</Badge>
-      case "fail":
-        return <Badge className="bg-red-600">실패</Badge>
-      default:
-        return <Badge variant="outline">미기재</Badge>
+  useEffect(() => {
+    loadReports()
+  }, [])
+
+  const handleDownload = async (reportId: number) => {
+    try {
+      const userId = 1 // TODO: 실제 userId 획득
+      const { presignedUrl } = await getReportDownloadUrl(reportId, userId)
+      window.open(presignedUrl, '_blank')
+      
+      toast({
+        title: "다운로드 시작",
+        description: "새 탭에서 보고서를 다운로드합니다.",
+      })
+    } catch (error) {
+      console.error("다운로드 실패:", error)
+      toast({
+        title: "다운로드 실패",
+        description: "보고서 다운로드 중 오류가 발생했습니다.",
+        variant: "destructive",
+      })
     }
+  }
+
+  const handleUpload = async (reportId: number, file: File) => {
+    if (!file.name.endsWith('.docx')) {
+      toast({
+        title: "파일 형식 오류",
+        description: ".docx 파일만 업로드 가능합니다.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setUploadingId(reportId)
+    try {
+      // TODO: Phase 2에서 구현
+      // 1. getUploadUrl(reportId, userId) - presigned PUT URL 받기
+      // 2. uploadToS3(presignedUrl, file) - S3에 직접 업로드
+      // 3. notifyUploadComplete(reportId, userId) - updated_at 갱신
+      
+      toast({
+        title: "업로드 기능 준비 중",
+        description: "Phase 2에서 구현 예정입니다.",
+        variant: "destructive",
+      })
+    } catch (error) {
+      console.error("업로드 실패:", error)
+      toast({
+        title: "업로드 실패",
+        description: "파일 업로드 중 오류가 발생했습니다.",
+        variant: "destructive",
+      })
+    } finally {
+      setUploadingId(null)
+    }
+  }
+
+  const handleDelete = async (id: number) => {
+    try {
+      const userId = 1 // TODO: 실제 userId 획득
+      await deleteReport(id, userId)
+      setReports(reports.filter((r) => r.id !== id))
+      setDeleteId(null)
+
+      toast({
+        title: "보고서가 삭제되었습니다",
+      })
+    } catch (error) {
+      console.error("삭제 실패:", error)
+      toast({
+        title: "삭제 실패",
+        description: "보고서 삭제 중 오류가 발생했습니다.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const getCvssCategory = (cvss: number) => {
+    if (cvss >= 9.0) return { label: "Critical", color: "bg-red-600" }
+    if (cvss >= 7.0) return { label: "High", color: "bg-orange-600" }
+    if (cvss >= 4.0) return { label: "Medium", color: "bg-yellow-600" }
+    return { label: "Low", color: "bg-green-600" }
   }
 
   const formatDate = (isoString: string) => {
@@ -87,52 +163,101 @@ export function MypageReports() {
           <p className="text-muted-foreground">제출한 실습 보고서 목록입니다</p>
         </div>
 
-        {reports.length === 0 ? (
+        {isLoading ? (
+          <Card>
+            <CardContent className="py-12 text-center text-muted-foreground">로딩 중...</CardContent>
+          </Card>
+        ) : reports.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">작성한 보고서가 없습니다</CardContent>
           </Card>
         ) : (
           <>
             <div className="grid gap-6 sm:grid-cols-2">
-              {paginatedReports.map((report) => (
-                <Card key={report.id} className="hover:border-primary/50 transition-colors">
-                  <CardHeader>
-                    <div className="flex items-start gap-3">
-                      <div className="rounded-lg bg-primary/10 p-2">
-                        <FileText className="h-5 w-5 text-primary" />
+              {paginatedReports.map((report) => {
+                const cveData = mockCVEs[report.cveId] || {
+                  title: "알 수 없음",
+                  cvss: 0,
+                  category: "Unknown",
+                  summary: "CVE 정보를 찾을 수 없습니다",
+                  tags: []
+                }
+                const cvssCategory = getCvssCategory(cveData.cvss)
+                
+                return (
+                  <Card key={report.id} className="hover:border-primary/50 transition-colors">
+                    <CardHeader>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3 flex-1">
+                          <div className="rounded-lg bg-primary/10 p-2">
+                            <FileText className="h-5 w-5 text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <CardTitle className="text-lg">{report.cveId}</CardTitle>
+                            <CardDescription className="mt-1 line-clamp-1">{cveData.title}</CardDescription>
+                          </div>
+                        </div>
+                        <Badge className={cvssCategory.color}>{cvssCategory.label}</Badge>
                       </div>
-                      <div className="flex-1">
-                        <CardTitle className="text-lg">{report.cveId}</CardTitle>
-                        <CardDescription className="mt-1">{report.cveName}</CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2 mb-4">
-                      {report.objective && (
-                        <p className="text-sm text-muted-foreground">
-                          <span className="font-medium">목표:</span> {report.objective}
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2 mb-4">
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {cveData.summary}
                         </p>
-                      )}
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">재현 결과:</span>
-                        {getReproductionBadge(report.reproduction)}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-medium">CVSS:</span>
+                          <span className="text-xs">{cveData.cvss}</span>
+                          {cveData.tags.map((tag, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          수정일: {formatDate(report.updatedAt)}
+                        </p>
                       </div>
-                      <p className="text-xs text-muted-foreground">작성일: {formatDate(report.createdAt)}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => setViewReport(report)} className="flex-1">
-                        <Eye className="h-3 w-3 mr-1" />
-                        보기
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => setDeleteId(report.id)}>
-                        <Trash2 className="h-3 w-3 mr-1" />
-                        삭제
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => handleDownload(report.id)}
+                        >
+                          <Download className="h-3 w-3 mr-1" />
+                          다운로드
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          disabled={uploadingId === report.id}
+                          onClick={() => {
+                            const input = document.createElement('input')
+                            input.type = 'file'
+                            input.accept = '.docx'
+                            input.onchange = (e) => {
+                              const file = (e.target as HTMLInputElement).files?.[0]
+                              if (file) handleUpload(report.id, file)
+                            }
+                            input.click()
+                          }}
+                        >
+                          <Upload className="h-3 w-3 mr-1" />
+                          {uploadingId === report.id ? '업로드 중...' : '수정'}
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => setDeleteId(report.id)}
+                        >
+                          <Trash2 className="h-3 w-3 mr-1" />
+                          삭제
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
 
             {totalPages > 1 && (
@@ -149,115 +274,6 @@ export function MypageReports() {
         description="삭제된 보고서는 복구할 수 없습니다."
         onConfirm={() => deleteId && handleDelete(deleteId)}
       />
-
-      <Dialog open={viewReport !== null} onOpenChange={(open) => !open && setViewReport(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white text-gray-900">
-          <DialogHeader>
-            <DialogTitle className="text-xl">보고서 상세</DialogTitle>
-            {viewReport && (
-              <p className="text-sm text-gray-600 mt-1">
-                {viewReport.cveId} - {formatDate(viewReport.createdAt)}
-              </p>
-            )}
-          </DialogHeader>
-
-          {viewReport && (
-            <div className="space-y-5 py-4">
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-1">CVE 정보</h3>
-                <p className="text-sm text-gray-900">{viewReport.cveName}</p>
-              </div>
-
-              {viewReport.objective && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-1">목표</h3>
-                  <p className="text-sm text-gray-900">{viewReport.objective}</p>
-                </div>
-              )}
-
-              {viewReport.steps && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-1">단계</h3>
-                  <p className="text-sm text-gray-900 whitespace-pre-wrap">{viewReport.steps}</p>
-                </div>
-              )}
-
-              {viewReport.commands && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-1">주요 명령 / 스니펫</h3>
-                  <pre className="text-xs font-mono bg-gray-100 p-3 rounded border border-gray-300 overflow-x-auto">
-                    {viewReport.commands}
-                  </pre>
-                </div>
-              )}
-
-              {viewReport.reproduction && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-1">재현 결과</h3>
-                  <div>{getReproductionBadge(viewReport.reproduction)}</div>
-                </div>
-              )}
-
-              {viewReport.resultSummary && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-1">결과 요약</h3>
-                  <p className="text-sm text-gray-900">{viewReport.resultSummary}</p>
-                </div>
-              )}
-
-              {viewReport.issues && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-1">발생한 문제</h3>
-                  <p className="text-sm text-gray-900">{viewReport.issues}</p>
-                </div>
-              )}
-
-              {viewReport.fixes && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-1">해결 방법 / 시도</h3>
-                  <p className="text-sm text-gray-900">{viewReport.fixes}</p>
-                </div>
-              )}
-
-              {viewReport.fileNames && viewReport.fileNames.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-1">첨부 파일</h3>
-                  <ul className="text-sm text-gray-900 space-y-1">
-                    {viewReport.fileNames.map((fileName, index) => (
-                      <li key={index} className="flex items-center gap-2">
-                        <span className="text-gray-500">•</span>
-                        {fileName}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {viewReport.learnings && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-1">배운 점</h3>
-                  <p className="text-sm text-gray-900 whitespace-pre-wrap">{viewReport.learnings}</p>
-                </div>
-              )}
-
-              {viewReport.difficulty && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-1">난이도</h3>
-                  <p className="text-sm text-gray-900">
-                    {viewReport.difficulty === "easy"
-                      ? "쉬움"
-                      : viewReport.difficulty === "normal"
-                        ? "보통"
-                        : viewReport.difficulty === "hard"
-                          ? "어려움"
-                          : viewReport.difficulty}
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </>
   )
 }
