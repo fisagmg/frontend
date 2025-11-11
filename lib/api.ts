@@ -136,12 +136,36 @@ export interface ReportUploadResponse {
   message: string;
 }
 
+// ====================================
+// News API
+// ====================================
+
+export interface NewsResponse {
+  id: number;
+  publisher: string;
+  title: string;
+  firstLine: string;
+  thumbnail: string;
+  externalUrl: string;
+  createdAt: string;
+}
+
+export async function fetchTopNews(): Promise<NewsResponse[]> {
+  const response = await api.get<NewsResponse[]>("/api/news/top")
+  return response.data
+}
+
+export async function fetchAllNews(): Promise<NewsResponse[]> {
+  const response = await api.get<NewsResponse[]>("/api/news")
+  return response.data
+}
+
 export async function createReport(
   userId: number,
   cveId: string,
   name: string
 ): Promise<ReportResponse> {
-  const response = await apiNoAuth.post<ReportResponse>("/api/reports", {
+  const response = await api.post<ReportResponse>("/api/reports", {
     userId,
     cveId,
     name,
@@ -150,7 +174,7 @@ export async function createReport(
 }
 
 export async function getMyReports(userId: number): Promise<ReportResponse[]> {
-  const response = await apiNoAuth.get<ReportResponse[]>("/api/reports/me", {
+  const response = await api.get<ReportResponse[]>("/api/reports/me", {
     params: { userId },
   });
   return response.data;
@@ -160,7 +184,7 @@ export async function getReportDownloadUrl(
   reportId: number,
   userId: number
 ): Promise<PresignedUrlResponse> {
-  const response = await apiNoAuth.get<PresignedUrlResponse>(
+  const response = await api.get<PresignedUrlResponse>(
     `/api/reports/${reportId}/download`,
     {
       params: { userId },
@@ -173,7 +197,7 @@ export async function deleteReport(
   reportId: number,
   userId: number
 ): Promise<void> {
-  await apiNoAuth.delete(`/api/reports/${reportId}`, {
+  await api.delete(`/api/reports/${reportId}`, {
     params: { userId },
   });
 }
@@ -186,7 +210,7 @@ export async function uploadReportFile(
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await apiNoAuth.put<ReportUploadResponse>(
+  const response = await api.put<ReportUploadResponse>(
     `/api/reports/${reportId}/file?userId=${userId}`,
     formData,
     {
