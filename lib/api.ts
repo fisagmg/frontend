@@ -31,7 +31,10 @@ export default api;
 // API 베이스 URL을 외부에서도 사용할 수 있도록 export
 export { getApiBaseUrl };
 
-export async function postJSON<TReq, TRes>(path: string, body: TReq): Promise<TRes> {
+export async function postJSON<TReq, TRes>(
+  path: string,
+  body: TReq
+): Promise<TRes> {
   const base = getApiBaseUrl();
   const res = await fetch(`${base}${path}`, {
     method: "POST",
@@ -60,41 +63,48 @@ export async function postJSON<TReq, TRes>(path: string, body: TReq): Promise<TR
   }
   return res.json();
 }
-  
-  export type SignupRequest = {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    phone?: string;
-  };
-  
-  export type SignupResponse = {
-    status?: string;
-    userId?: string;
-    email?: string;
-    verification?: string;
-  };
-  
+
+export type SignupRequest = {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+};
+
+export type SignupResponse = {
+  status?: string;
+  userId?: string;
+  email?: string;
+  verification?: string;
+};
+
 export function signup(req: SignupRequest) {
   return postJSON<SignupRequest, SignupResponse>("/api/v1/auth/signup", req);
 }
 
 export async function sendOtp(email: string) {
   const base = getApiBaseUrl();
-  const r = await fetch(`${base}/api/v1/auth/otp/send?email=${encodeURIComponent(email)}`, {
-    method: "POST",
-  });
+  const r = await fetch(
+    `${base}/api/v1/auth/otp/send?email=${encodeURIComponent(email)}`,
+    {
+      method: "POST",
+    }
+  );
   if (!r.ok) throw new Error((await r.text()) || "인증번호 전송 실패");
   return r.json();
 }
 
 export async function verifyOtp(email: string, code: string) {
   const base = getApiBaseUrl();
-  const r = await fetch(`${base}/api/v1/auth/otp/verify?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, {
-    method: "POST",
-  });
-  if (!r.ok) throw new Error((await r.text()) || "인증번호가 유효하지 않습니다");
+  const r = await fetch(
+    `${base}/api/v1/auth/otp/verify?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`,
+    {
+      method: "POST",
+    }
+  );
+  if (!r.ok)
+    throw new Error((await r.text()) || "인증번호가 유효하지 않습니다");
   return r.json();
 }
 
@@ -174,16 +184,50 @@ export async function uploadReportFile(
   file: File
 ): Promise<ReportUploadResponse> {
   const formData = new FormData();
-  formData.append('file', file);
+  formData.append("file", file);
 
   const response = await apiNoAuth.put<ReportUploadResponse>(
     `/api/reports/${reportId}/file?userId=${userId}`,
     formData,
     {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     }
+  );
+  return response.data;
+}
+
+// ====================================
+// VM API
+// ====================================
+
+export interface CreateVmResponse {
+  vmId: string;
+  instanceId: string;
+  publicIp: string;
+  privateIp: string;
+  connectionId: string;
+  terminalUrl: string;
+}
+
+export async function createVM(cveId: string): Promise<CreateVmResponse> {
+  const response = await api.post<CreateVmResponse>("/api/v1/vm/create", {
+    vmName: `${cveId}-lab-${Date.now()}`,
+    instanceType: "t2.micro",
+  });
+  return response.data;
+}
+
+export async function deleteVM(vmId: string): Promise<void> {
+  await api.delete(`/api/v1/vm/${vmId}`);
+}
+
+export async function getTerminalUrl(
+  vmId: string
+): Promise<{ terminalUrl: string }> {
+  const response = await api.get<{ terminalUrl: string }>(
+    `/api/v1/vm/${vmId}/terminal`
   );
   return response.data;
 }
