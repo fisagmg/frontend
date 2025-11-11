@@ -1,6 +1,5 @@
 import { Hero } from "@/components/hero"
 import { NewsHighlights } from "@/components/news-highlights"
-import { mockNews } from "@/lib/mock-data"
 
 export default function HomePage() {
   return (
@@ -11,7 +10,7 @@ export default function HomePage() {
             <Hero />
           </div>
           <div className="w-full lg:w-1/2">
-            <NewsHighlights items={mockNews} />
+            <NewsHighlights />
           </div>
         </div>
       </div>
