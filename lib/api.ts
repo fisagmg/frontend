@@ -236,22 +236,89 @@ export interface CreateVmResponse {
 }
 
 export async function createVM(cveId: string): Promise<CreateVmResponse> {
-  const response = await api.post<CreateVmResponse>("/api/v1/vm/create", {
+  const response = await api.post<CreateVmResponse>("/api/labs/create", {
     vmName: `${cveId}-lab-${Date.now()}`,
     instanceType: "t2.micro",
   });
   return response.data;
 }
 
-export async function deleteVM(vmId: string): Promise<void> {
-  await api.delete(`/api/v1/vm/${vmId}`);
+export async function deleteVM(uuid: string, cveId?: string): Promise<void> {
+  await api.post("/api/labs/destroy", {
+    uuid: uuid,
+    cveId: cveId || null,
+    userId: null, // userId는 현재 백엔드 구현에서 destroy에 필요하지 않음
+  });
 }
 
 export async function getTerminalUrl(
   vmId: string
 ): Promise<{ terminalUrl: string }> {
   const response = await api.get<{ terminalUrl: string }>(
-    `/api/v1/vm/${vmId}/terminal`
+    `/api/labs/${vmId}/terminal`
+  );
+  return response.data;
+}
+
+// ====================================
+// Lab Session Timer API
+// ====================================
+
+import type {
+  LabRemainingTimeResponse,
+  LabExtendableResponse,
+  LabExtendResponse,
+  LabTerminateResponse,
+} from "@/types/lab";
+
+/**
+ * Lab 세션의 남은 시간 조회
+ * @param uuid Lab 세션 UUID (vmId)
+ */
+export async function getRemainingTime(
+  uuid: string
+): Promise<LabRemainingTimeResponse> {
+  const response = await api.get<LabRemainingTimeResponse>(
+    `/api/labs/${uuid}/remaining-time`
+  );
+  return response.data;
+}
+
+/**
+ * Lab 세션 연장 가능 여부 확인
+ * @param uuid Lab 세션 UUID (vmId)
+ */
+export async function checkExtendable(
+  uuid: string
+): Promise<LabExtendableResponse> {
+  const response = await api.get<LabExtendableResponse>(
+    `/api/labs/${uuid}/extendable`
+  );
+  return response.data;
+}
+
+/**
+ * Lab 세션 시간 연장 (30분)
+ * @param uuid Lab 세션 UUID (vmId)
+ */
+export async function extendSession(
+  uuid: string
+): Promise<LabExtendResponse> {
+  const response = await api.post<LabExtendResponse>(
+    `/api/labs/${uuid}/extend`
+  );
+  return response.data;
+}
+
+/**
+ * Lab 세션 수동 종료
+ * @param uuid Lab 세션 UUID (vmId)
+ */
+export async function terminateSession(
+  uuid: string
+): Promise<LabTerminateResponse> {
+  const response = await api.post<LabTerminateResponse>(
+    `/api/labs/${uuid}/terminate`
   );
   return response.data;
 }
