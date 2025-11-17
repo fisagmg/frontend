@@ -25,7 +25,68 @@ const cveData: Record<string, any> = {
     ],
     attackComplexity: "Low",
   },
-  // 다른 CVE들 추가...
+  "CVE-2025-29927": {
+    id: "CVE-2025-29927",
+    title: "Next.js Middleware 인증 우회 취약점",
+    cvssScore: 9.1,
+    severity: "Critical",
+    summary:
+      "Next.js의 middleware 우회로 인한 인증 절차 무력화 및 제한된 페이지 접근 취약점",
+    tags: [
+      "Next.js",
+      "Authentication Bypass",
+      "Middleware",
+      "Web Framework",
+      "Node.js",
+    ],
+    publishedDate: "2025-03-21",
+    nvdUrl: "https://nvd.nist.gov/vuln/detail/CVE-2025-29927",
+    target: [
+      "Next.js < v15.2.3",
+      "Next.js < v14.2.25",
+      "Next.js < v13.5.9",
+      "Next.js < v12.3.5",
+      "Next.js v11.x (전체)",
+    ],
+    attackComplexity: "Low",
+  },
+  "CVE-2024-55879": {
+    id: "CVE-2024-55879",
+    title: "XWiki 원격 임의 코드 실행 취약점",
+    cvssScore: 9.0,
+    severity: "Critical",
+    summary:
+      "XWiki의 ConfigurableClass 객체 속성 조작을 통한 Groovy 스크립트 실행 및 원격 코드 실행 취약점",
+    tags: ["RCE", "XWiki", "SSTI", "Groovy", "Template Injection", "Wiki"],
+    publishedDate: "2024-12-12",
+    nvdUrl: "https://nvd.nist.gov/vuln/detail/CVE-2024-55879",
+    target: ["XWiki >= 2.3, < 15.10.9", "XWiki >= 16.0.0-rc-1, < 16.3.0"],
+    attackComplexity: "Low",
+  },
+  "CVE-2024-53677": {
+    id: "CVE-2024-53677",
+    title: "Apache Struts2 파일 업로드 우회 취약점",
+    cvssScore: 9.5,
+    severity: "Critical",
+    summary:
+      "Apache Struts2의 File Upload Interceptor 로직 결함을 통한 OGNL 표현식 악용 및 임의 파일 업로드 취약점",
+    tags: [
+      "RCE",
+      "File Upload",
+      "Apache Struts2",
+      "OGNL",
+      "Path Traversal",
+      "Web Framework",
+    ],
+    publishedDate: "2024-12-11",
+    nvdUrl: "https://nvd.nist.gov/vuln/detail/CVE-2024-53677",
+    target: [
+      "Apache Struts 2.0.0 - 2.3.37",
+      "Apache Struts 2.5.0 - 2.5.33",
+      "Apache Struts 6.0.0 - 6.3.0.2",
+    ],
+    attackComplexity: "Low",
+  },
 };
 
 export async function generateStaticParams() {
