@@ -1,17 +1,18 @@
 "use client";
 
-import { useState, use } from "react";
+import { useState, use, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { CountdownTimer } from "@/components/countdown-timer";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { LabActionButtons } from "@/components/lab-action-buttons";
 import { AuthGuard } from "@/lib/auth-context";
 import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { LabGuidePanel } from "@/components/lab-guide-panel";
 import { useToast } from "@/hooks/use-toast";
-import { createReport, createVM, deleteVM } from "@/lib/api";
+import { createReport, createVM, deleteVM, getRemainingTime } from "@/lib/api";
 
-const INITIAL_TIME = 1 * 60 * 60; // 1 hour in seconds
+const INITIAL_TIME = 1 * 60 * 60; // 1 hour in seconds (fallback)
 
 // CVE 메타데이터
 const cveMetadata: Record<string, { title: string; subtitle: string }> = {
@@ -35,6 +36,7 @@ export default function LabStartPage({
   const [vmId, setVmId] = useState<string | null>(null);
   const [terminalUrl, setTerminalUrl] = useState<string | null>(null);
   const [timerStarted, setTimerStarted] = useState(false);
+  const [expiresAt, setExpiresAt] = useState<string | null>(null); // 하이브리드 타이머용
   const [showCreateVmDialog, setShowCreateVmDialog] = useState(false);
   const [showStopVmDialog, setShowStopVmDialog] = useState(false);
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
@@ -48,9 +50,39 @@ export default function LabStartPage({
     subtitle: "실습 가이드",
   };
 
+  // 페이지 로드 시 기존 VM의 남은 시간 가져오기
+  useEffect(() => {
+    const savedVmId = localStorage.getItem(`vm_${cveId}`);
+    if (savedVmId && !vmId) {
+      // 기존 VM이 있으면 복구
+      setVmId(savedVmId);
+      setVmStatus("ready");
+      setTimerStarted(true);
+
+      // 백엔드에서 정확한 만료 시간 가져오기
+      getRemainingTime(savedVmId)
+        .then((response) => {
+          setExpiresAt(response.expires_at);
+        })
+        .catch((error) => {
+          console.error("Failed to fetch remaining time:", error);
+          // 실패 시 로컬 스토리지 정리
+          localStorage.removeItem(`vm_${cveId}`);
+          setVmId(null);
+          setVmStatus("idle");
+          setTimerStarted(false);
+        });
+    }
+  }, [cveId, vmId]);
+
   const handleCreateVm = async () => {
     setShowCreateVmDialog(false);
     setVmStatus("creating");
+
+    // VM 생성 시작과 동시에 타이머 시작 (임시 1시간)
+    setTimerStarted(true);
+    const tempExpiresAt = new Date(Date.now() + INITIAL_TIME * 1000).toISOString();
+    setExpiresAt(tempExpiresAt);
 
     try {
       toast({
@@ -63,7 +95,18 @@ export default function LabStartPage({
       setVmId(response.vmId);
       setTerminalUrl(response.terminalUrl);
       setVmStatus("ready");
-      setTimerStarted(true);
+
+      // localStorage에 VM ID 저장 (페이지 새로고침 대비)
+      localStorage.setItem(`vm_${cveId}`, response.vmId);
+
+      // VM 생성 완료 후 백엔드에서 정확한 만료 시간 가져오기
+      try {
+        const timeResponse = await getRemainingTime(response.vmId);
+        setExpiresAt(timeResponse.expires_at);
+      } catch (timeError) {
+        console.warn("Failed to fetch remaining time, using fallback:", timeError);
+        // 실패 시 임시 시간 유지
+      }
 
       toast({
         title: "VM 생성 완료",
@@ -72,6 +115,10 @@ export default function LabStartPage({
     } catch (error) {
       console.error("VM 생성 실패:", error);
       setVmStatus("idle");
+      
+      // VM 생성 실패 시 타이머도 중지
+      setTimerStarted(false);
+      setExpiresAt(null);
 
       toast({
         title: "VM 생성 실패",
@@ -95,12 +142,16 @@ export default function LabStartPage({
         description: "VM을 종료하고 있습니다...",
       });
 
-      await deleteVM(vmId);
+      await deleteVM(vmId, cveId);
 
       setVmStatus("idle");
       setVmId(null);
       setTerminalUrl(null);
       setTimerStarted(false);
+      setExpiresAt(null);
+
+      // localStorage 정리
+      localStorage.removeItem(`vm_${cveId}`);
 
       toast({
         title: "VM 종료 완료",
@@ -125,7 +176,8 @@ export default function LabStartPage({
 
     if (vmStatus === "ready" && vmId) {
       try {
-        await deleteVM(vmId);
+        await deleteVM(vmId, cveId);
+        localStorage.removeItem(`vm_${cveId}`);
       } catch (error) {
         console.error("VM 정리 실패:", error);
       }
@@ -139,7 +191,8 @@ export default function LabStartPage({
 
     if (vmStatus === "ready" && vmId) {
       try {
-        await deleteVM(vmId);
+        await deleteVM(vmId, cveId);
+        localStorage.removeItem(`vm_${cveId}`);
       } catch (error) {
         console.error("VM 정리 실패:", error);
       }
@@ -153,7 +206,8 @@ export default function LabStartPage({
 
     if (vmId) {
       try {
-        await deleteVM(vmId);
+        await deleteVM(vmId, cveId);
+        localStorage.removeItem(`vm_${cveId}`);
       } catch (error) {
         console.error("VM 정리 실패:", error);
       }
@@ -251,9 +305,28 @@ export default function LabStartPage({
               </Button>
             </div>
             <div className="flex items-center gap-3">
+              {vmStatus === "ready" && vmId && expiresAt && (
+                <LabActionButtons
+                  uuid={vmId}
+                  expiresAt={expiresAt}
+                  onUpdateExpires={(newExpiresAt) => {
+                    setExpiresAt(newExpiresAt);
+                  }}
+                  onTerminated={() => {
+                    // 세션 종료 시 처리
+                    setVmStatus("idle");
+                    setVmId(null);
+                    setTerminalUrl(null);
+                    setTimerStarted(false);
+                    setExpiresAt(null);
+                    localStorage.removeItem(`vm_${cveId}`);
+                    router.push("/");
+                  }}
+                />
+              )}
               {timerStarted && (
                 <CountdownTimer
-                  initialSeconds={INITIAL_TIME}
+                  expiresAt={expiresAt}
                   onComplete={() => setShowTimeoutDialog(true)}
                 />
               )}

@@ -4,25 +4,49 @@ import { useEffect, useState } from "react"
 import { Clock } from "lucide-react"
 
 interface CountdownTimerProps {
-  initialSeconds: number
+  expiresAt: string | null  // ISO datetime string from backend
   onComplete: () => void
 }
 
-export function CountdownTimer({ initialSeconds, onComplete }: CountdownTimerProps) {
-  const [seconds, setSeconds] = useState(initialSeconds)
+export function CountdownTimer({ expiresAt, onComplete }: CountdownTimerProps) {
+  const [seconds, setSeconds] = useState(0)
 
   useEffect(() => {
-    if (seconds <= 0) {
+    if (!expiresAt) {
+      setSeconds(0)
+      return
+    }
+
+    // 초기 계산
+    const calculateRemaining = () => {
+      const now = Date.now()
+      const expires = new Date(expiresAt).getTime()
+      const remaining = Math.max(0, Math.floor((expires - now) / 1000))
+      return remaining
+    }
+
+    // 즉시 계산
+    const remaining = calculateRemaining()
+    setSeconds(remaining)
+
+    if (remaining <= 0) {
       onComplete()
       return
     }
 
+    // 매 초마다 재계산
     const interval = setInterval(() => {
-      setSeconds((prev) => prev - 1)
+      const remaining = calculateRemaining()
+      setSeconds(remaining)
+
+      if (remaining <= 0) {
+        onComplete()
+        clearInterval(interval)
+      }
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [seconds, onComplete])
+  }, [expiresAt, onComplete])
 
   const hours = Math.floor(seconds / 3600)
   const minutes = Math.floor((seconds % 3600) / 60)
