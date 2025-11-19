@@ -462,6 +462,90 @@ export const mockCVEs: CVEItem[] = [
       "https://www.cyber.gc.ca/en/alerts-advisories/cve-2024-53677-vulnerability-impacting-apache-struts-2",
     ],
   },
+  {
+    id: "CVE-2023-50164",
+    title: "Apache Struts2 파일 업로드 RCE 취약점",
+    cvssScore: 9.8,
+    severity: "Critical",
+    summary:
+      "Apache Struts2의 파일 업로드 로직 결함으로 인한 대소문자 구분 오류를 악용한 웹셸 업로드 및 원격 코드 실행 취약점",
+    tags: ["RCE", "File Upload", "Apache Struts2", "Web Shell", "Path Traversal"],
+    publishedDate: "2023-12-07",
+    os: "Linux",
+    domain: "Web Application",
+
+    // Quick Info
+    nvdUrl: "https://nvd.nist.gov/vuln/detail/CVE-2023-50164",
+    target: [
+      "Apache Struts 2.0.0 - 2.3.37",
+      "Apache Struts 2.5.0 - 2.5.32",
+      "Apache Struts 6.0.0 - 6.3.0.1",
+    ],
+    attackComplexity: "Low",
+    privilegesRequired: "None",
+
+    // Overview
+    overview: `• Apache Struts2는 Java EE 웹 애플리케이션 개발을 위한 오픈소스 MVC 프레임워크
+    • 전 세계 약 358만 개 사이트에서 사용 중 (2023년 기준)
+    • 이 취약점은 파일 업로드 시 uploadFileName 파라미터의 대소문자 구분 오류로 인해 발생
+    • Upload 클래스는 File upload, String uploadFileName, String uploadContentType 3가지 속성을 가짐
+    • 공격자는 대소문자를 조작한 파라미터(upload.UploadFileName)를 통해 경로 검증을 우회하고 임의 경로에 웹셸 업로드 가능`,
+
+    whyDangerous: `• 광범위한 영향: 전 세계 358만 개 사이트가 잠재적 위험에 노출
+    • 낮은 공격 난이도: 파일 업로드 기능만 있으면 인증 없이 공격 가능
+    • 완전한 시스템 장악: 웹셸을 통한 원격 명령 실행 (root 권한)
+    • 즉각적인 악용: 2023년 12월 공개 직후 활발한 공격 시도 보고
+    • 연쇄 취약점: CVE-2024-53677로 이어지는 불완전한 패치`,
+
+    attackScenario: `1. Initial Access: 공격자가 Apache Struts2를 사용하는 파일 업로드 페이지 탐색
+
+    2. Exploitation: upload.UploadFileName 파라미터로 대소문자 검증 우회
+
+    3. Execution: 임의 경로(../../)에 악성 JSP 웹셸 업로드 성공
+
+    4. Persistence: 웹셸 접근 → 서버에서 임의 명령 실행 (id, whoami, cat /etc/passwd 등)
+
+    5. Impact: 데이터베이스 정보 탈취, 랜섬웨어 설치, 또는 추가 공격을 위한 거점 확보`,
+
+    // Lab Environment
+    labEnvironment: {
+      victim: {
+        description: "Docker Container (Struts 6.3.0.1, Tomcat 9.0)",
+        ip: "10.0.0.166:8080",
+      },
+      attacker: {
+        description: "Ubuntu Server (Python, PoC 스크립트, Docker)",
+        ip: "Host Machine",
+      },
+    },
+    prerequisites: [
+      "Docker 설치 완료",
+      "Python 3.x 환경",
+      "PoC 스크립트 기탑재",
+      "기본적인 HTTP 요청 지식",
+    ],
+
+    mitigation: `• Apache Struts2 6.3.0.2 이상으로 업그레이드 (권장)
+    • HttpParameters.java에 remove() 메서드 추가 및 equalsIgnoreCase() 적용
+    • 파일 업로드 디렉토리 권한 최소화 및 실행 권한 제거
+    • WAF/리버스 프록시에서 의심스러운 파일 업로드 차단
+    • 업로드 파일명 화이트리스트 검증 강화`,
+
+    keyTakeaways: [
+      "대소문자 구분 오류의 위험성: uploadFileName vs UploadFileName",
+      "파라미터 바인딩 메커니즘 이해: Struts2의 자동 바인딩 특성",
+      "경로 검증 우회: ../ 를 통한 Path Traversal",
+      "불완전한 패치: CVE-2024-53677로 이어지는 유사 취약점",
+      "방어 깊이: 입력 검증 + 출력 필터링 + 권한 최소화",
+    ],
+
+    references: [
+      "https://nvd.nist.gov/vuln/detail/CVE-2023-50164",
+      "https://cwiki.apache.org/confluence/display/WW/S2-066",
+      "https://github.com/apache/struts/pull/887",
+      "https://struts.apache.org/security/",
+    ],
+  },
 ];
 
 // Reports와 LabHistory는 첫 번째 CVE 기준으로 생성
