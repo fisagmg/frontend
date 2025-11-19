@@ -226,29 +226,39 @@ export async function uploadReportFile(
 // VM API
 // ====================================
 
-export interface CreateVmResponse {
-  vmId: string;
-  instanceId: string;
-  publicIp: string;
+export interface LabCreateResponse {
+  uuid: string;
+  cveId: string;
   privateIp: string;
-  connectionId: string;
-  terminalUrl: string;
+  hostname: string;
+  instanceId: string;
+  status: string;
+  tfstatePath: string;
+  guacamoleUrl: string | null;
+  sshUsername: string;
+  sshPassword: string | null;
+  privateKey: string | null;
 }
 
-export async function createVM(cveId: string): Promise<CreateVmResponse> {
-  const response = await api.post<CreateVmResponse>("/api/labs/create", {
-    vmName: `${cveId}-lab-${Date.now()}`,
-    instanceType: "t2.micro",
+export async function createVM(cveId: string): Promise<LabCreateResponse> {
+  const response = await api.post<LabCreateResponse>("/api/labs/create", {
+    cveId,
   });
   return response.data;
 }
 
-export async function deleteVM(uuid: string, cveId?: string): Promise<void> {
-  await api.post("/api/labs/destroy", {
-    uuid: uuid,
-    cveId: cveId || null,
-    userId: null, // userId는 현재 백엔드 구현에서 destroy에 필요하지 않음
+export interface LabDestroyResponse {
+  status: string;
+  uuid: string;
+  cveId: string;
+}
+
+export async function deleteVM(uuid: string, cveId: string): Promise<LabDestroyResponse> {
+  const response = await api.post<LabDestroyResponse>("/api/labs/destroy", {
+    uuid,
+    cveId,
   });
+  return response.data;
 }
 
 export async function getTerminalUrl(
