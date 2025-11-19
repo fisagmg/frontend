@@ -87,6 +87,23 @@ const cveData: Record<string, any> = {
     ],
     attackComplexity: "Low",
   },
+  "CVE-2023-50164": {
+    id: "CVE-2023-50164",
+    title: "Apache Struts2 파일 업로드 RCE 취약점",
+    cvssScore: 9.8,
+    severity: "Critical",
+    summary:
+      "Apache Struts2의 파일 업로드 로직 결함으로 인한 대소문자 구분 오류를 악용한 웹셸 업로드 및 원격 코드 실행 취약점",
+    tags: ["RCE", "File Upload", "Apache Struts2", "Web Shell", "Path Traversal"],
+    publishedDate: "2023-12-07",
+    nvdUrl: "https://nvd.nist.gov/vuln/detail/CVE-2023-50164",
+    target: [
+      "Apache Struts 2.0.0 - 2.3.37",
+      "Apache Struts 2.5.0 - 2.5.32",
+      "Apache Struts 6.0.0 - 6.3.0.1",
+    ],
+    attackComplexity: "Low",
+  },
 };
 
 export async function generateStaticParams() {
