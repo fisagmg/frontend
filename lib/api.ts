@@ -332,3 +332,21 @@ export async function terminateSession(
   );
   return response.data;
 }
+
+export async function completeLabSession(
+  uuid: string
+): Promise<LabTerminateResponse> {
+  const response = await api.post<LabTerminateResponse>(
+    `/api/labs/${uuid}/complete`
+  );
+  return response.data;
+}
+
+export async function cancelLabSession(
+  uuid: string
+): Promise<LabTerminateResponse> {
+  const response = await api.post<LabTerminateResponse>(
+    `/api/labs/${uuid}/cancel`
+  );
+  return response.data;
+}

@@ -8,7 +8,6 @@ import { Loader2 } from "lucide-react"
 import {
   checkExtendable,
   extendSession,
-  terminateSession,
 } from "@/lib/api"
 import type { LabExtendableResponse } from "@/types/lab"
 
@@ -28,8 +27,6 @@ export function LabActionButtons({
   const { toast } = useToast()
   const [extendableInfo, setExtendableInfo] = useState<LabExtendableResponse | null>(null)
   const [isExtending, setIsExtending] = useState(false)
-  const [isTerminating, setIsTerminating] = useState(false)
-  const [showTerminateDialog, setShowTerminateDialog] = useState(false)
 
   // 페이지 로드 시 연장 가능 여부 확인
   useEffect(() => {
@@ -89,43 +86,6 @@ export function LabActionButtons({
     }
   }
 
-  const handleTerminate = async () => {
-    setShowTerminateDialog(false)
-    setIsTerminating(true)
-
-    try {
-      await terminateSession(uuid)
-
-      toast({
-        title: "세션 종료 완료",
-        description: "Lab 세션이 성공적으로 종료되었습니다.",
-      })
-
-      // 부모 컴포넌트에 종료 알림
-      if (onTerminated) {
-        onTerminated()
-      }
-    } catch (error: any) {
-      console.error("세션 종료 실패:", error)
-
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        toast({
-          title: "인증 만료",
-          description: "로그인이 만료되었습니다. 다시 로그인해주세요.",
-          variant: "destructive",
-        })
-      } else {
-        toast({
-          title: "세션 종료 실패",
-          description: error.message || "세션 종료 중 오류가 발생했습니다.",
-          variant: "destructive",
-        })
-      }
-    } finally {
-      setIsTerminating(false)
-    }
-  }
-
   return (
     <>
       <div className="flex items-center gap-2">
@@ -150,33 +110,7 @@ export function LabActionButtons({
             "시간 연장 (+30분)"
           )}
         </Button>
-
-        {/* 세션 종료 버튼 */}
-        <Button
-          onClick={() => setShowTerminateDialog(true)}
-          disabled={isTerminating}
-          variant="destructive"
-          size="sm"
-        >
-          {isTerminating ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              종료 중...
-            </>
-          ) : (
-            "세션 종료"
-          )}
-        </Button>
       </div>
-
-      {/* 종료 확인 다이얼로그 */}
-      <ConfirmDialog
-        open={showTerminateDialog}
-        onOpenChange={setShowTerminateDialog}
-        title="세션을 종료하시겠습니까?"
-        description="세션을 종료하면 VM이 삭제되고 작업 내용이 저장되지 않을 수 있습니다."
-        onConfirm={handleTerminate}
-      />
     </>
   )
 }
