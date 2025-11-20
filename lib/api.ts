@@ -364,6 +364,16 @@ export interface UserProfileResponse {
   fullName: string;
 }
 
+export interface CompletedLabItem {
+  cveId: number;
+  cveName: string;
+  outline: string;
+  cvssScore: number;
+  labOs: string | null;
+  relatedDomain: string | null;
+  completedAt: string;
+}
+
 export interface UpdateProfileRequest {
   firstName: string;
   lastName: string;
@@ -395,4 +405,11 @@ export async function changeMyPassword(
   payload: ChangePasswordRequest
 ): Promise<void> {
   await api.put('/api/mypage/me/password', payload);
+}
+
+export async function getCompletedLabs(): Promise<CompletedLabItem[]> {
+  const response = await api.get<CompletedLabItem[]>(
+    '/api/mypage/completed-cves'
+  );
+  return response.data;
 }

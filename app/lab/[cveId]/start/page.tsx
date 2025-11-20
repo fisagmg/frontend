@@ -53,7 +53,6 @@ export default function LabStartPage({
   const [showCreateVmDialog, setShowCreateVmDialog] = useState(false);
   const [showStopVmDialog, setShowStopVmDialog] = useState(false);
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
-  const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showTimeoutDialog, setShowTimeoutDialog] = useState(false);
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
   const [isCreatingReport, setIsCreatingReport] = useState(false);
@@ -89,10 +88,15 @@ export default function LabStartPage({
         setVmStatus("terminated");
         setTimerStarted(false);
         setExpiresAt(null);
+        localStorage.removeItem("active_lab_session");
       } else {
         setVmStatus("ready");
         setTimerStarted(false);
         setExpiresAt(null);
+        localStorage.setItem(
+          "active_lab_session",
+          JSON.stringify({ cveId, uuid: parsed.uuid, status: "ready" })
+        );
 
         getRemainingTime(parsed.uuid)
           .then((response) => {
@@ -109,11 +113,13 @@ export default function LabStartPage({
             setVmStatus("idle");
             setTimerStarted(false);
             setExpiresAt(null);
+            localStorage.removeItem("active_lab_session");
           });
       }
     } catch (error) {
       console.error("Failed to restore lab session:", error);
       localStorage.removeItem(storageKey);
+      localStorage.removeItem("active_lab_session");
     }
   }, [vmId, storageKey]);
 
@@ -122,6 +128,17 @@ export default function LabStartPage({
     setVmStatus("creating");
     setTimerStarted(false);
     setExpiresAt(null);
+
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem(
+          "active_lab_session",
+          JSON.stringify({ cveId, status: "creating" })
+        );
+      }
+    } catch (error) {
+      console.warn("Failed to set active lab session:", error);
+    }
 
     try {
       toast({
@@ -141,6 +158,10 @@ export default function LabStartPage({
         terminated: false,
       };
       localStorage.setItem(storageKey, JSON.stringify(sessionToStore));
+      localStorage.setItem(
+        "active_lab_session",
+        JSON.stringify({ cveId, uuid: response.uuid, status: "ready" })
+      );
 
       // VM 생성 완료 후 백엔드에서 정확한 만료 시간 가져오기
       try {
@@ -174,6 +195,7 @@ export default function LabStartPage({
       setVmId(null);
       setTerminalUrl(null);
       localStorage.removeItem(storageKey);
+      localStorage.removeItem("active_lab_session");
 
       toast({
         title: "VM 생성 실패",
@@ -207,6 +229,7 @@ export default function LabStartPage({
         storageKey,
         JSON.stringify({ uuid: vmId, guacamoleUrl: null, terminated: true })
       );
+      localStorage.removeItem("active_lab_session");
 
       toast({
         title: "VM 종료 완료",
@@ -250,44 +273,13 @@ export default function LabStartPage({
     }
 
     localStorage.removeItem(storageKey);
+    localStorage.removeItem("active_lab_session");
     setVmStatus("idle");
     setVmId(null);
     setTerminalUrl(null);
     setTimerStarted(false);
     setExpiresAt(null);
     router.push("/");
-  };
-
-  const handleCancel = async () => {
-    setShowCancelDialog(false);
-
-    if (vmId) {
-      try {
-        await cancelLabSession(vmId);
-        toast({
-          title: "실습이 취소되었습니다",
-          description: "VM이 종료되고 기록이 남지 않습니다.",
-        });
-      } catch (error) {
-        console.error("실습 취소 실패:", error);
-        toast({
-          title: "실습 취소 실패",
-          description:
-            error instanceof Error
-              ? error.message
-              : "실습 취소 처리 중 오류가 발생했습니다.",
-          variant: "destructive",
-        });
-      }
-    }
-
-    localStorage.removeItem(storageKey);
-    setVmStatus("idle");
-    setVmId(null);
-    setTerminalUrl(null);
-    setTimerStarted(false);
-    setExpiresAt(null);
-    router.push("/learn");
   };
 
   const handleTimeout = async () => {
@@ -300,6 +292,7 @@ export default function LabStartPage({
         console.error("타임아웃 처리 실패:", error);
       } finally {
         localStorage.removeItem(storageKey);
+        localStorage.removeItem("active_lab_session");
       }
     }
 
@@ -387,15 +380,9 @@ export default function LabStartPage({
                 onClick={() => setShowCompleteDialog(true)}
                 variant="default"
                 size="sm"
+                disabled={vmStatus !== "ready" && vmStatus !== "terminated"}
               >
                 실습 완료
-              </Button>
-              <Button
-                onClick={() => setShowCancelDialog(true)}
-                variant="outline"
-                size="sm"
-              >
-                실습 취소
               </Button>
             </div>
             <div className="flex items-center gap-3">
@@ -414,6 +401,7 @@ export default function LabStartPage({
                     setTimerStarted(false);
                     setExpiresAt(null);
                     localStorage.removeItem(storageKey);
+                    localStorage.removeItem("active_lab_session");
                     router.push("/");
                   }}
                 />
@@ -536,14 +524,6 @@ export default function LabStartPage({
           title="실습을 완료하시겠습니까?"
           description="실습을 완료하면 VM이 종료되고 홈 화면으로 이동합니다."
           onConfirm={handleComplete}
-        />
-
-        <ConfirmDialog
-          open={showCancelDialog}
-          onOpenChange={setShowCancelDialog}
-          title="실습을 취소하시겠습니까?"
-          description="실습을 취소하면 VM이 종료되고 학습 페이지로 이동합니다."
-          onConfirm={handleCancel}
         />
 
         <ConfirmDialog
