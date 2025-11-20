@@ -350,3 +350,49 @@ export async function cancelLabSession(
   );
   return response.data;
 }
+
+// ====================================
+// MyPage Profile API
+// ====================================
+
+export interface UserProfileResponse {
+  id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string | null;
+  fullName: string;
+}
+
+export interface UpdateProfileRequest {
+  firstName: string;
+  lastName: string;
+  phone?: string | null;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export async function getMyProfile(): Promise<UserProfileResponse> {
+  const response = await api.get<UserProfileResponse>('/api/mypage/me');
+  return response.data;
+}
+
+export async function updateMyProfile(
+  payload: UpdateProfileRequest
+): Promise<UserProfileResponse> {
+  const response = await api.put<UserProfileResponse>(
+    '/api/mypage/me',
+    payload
+  );
+  return response.data;
+}
+
+export async function changeMyPassword(
+  payload: ChangePasswordRequest
+): Promise<void> {
+  await api.put('/api/mypage/me/password', payload);
+}
