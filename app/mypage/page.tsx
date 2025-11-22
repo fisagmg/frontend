@@ -1,14 +1,30 @@
 "use client"
 
-import { useState } from "react"
+"use client"
+
+import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { AuthGuard } from "@/lib/auth-context"
 import { MypageSidebar } from "@/components/mypage-sidebar"
 import { MypageLabHistory } from "@/components/mypage-lab-history"
 import { MypageReports } from "@/components/mypage-reports"
 import { MypageProfile } from "@/components/mypage-profile"
+import { MypageAiAnalysis } from "@/components/mypage-ai-analysis"
 
 export default function MypagePage() {
-  const [activeView, setActiveView] = useState<"lab-history" | "reports" | "profile">("lab-history")
+  const searchParams = useSearchParams()
+  const [activeView, setActiveView] = useState<"lab-history" | "reports" | "profile" | "ai-analysis">("lab-history")
+
+  // URL에 alarm 파라미터가 있으면 자동으로 AI 분석 탭으로 전환
+  useEffect(() => {
+    const alarmName = searchParams.get("alarm_name")
+    const instanceId = searchParams.get("instance_id")
+    const timestamp = searchParams.get("timestamp")
+
+    if (alarmName && instanceId && timestamp) {
+      setActiveView("ai-analysis")
+    }
+  }, [searchParams])
 
   return (
     <AuthGuard>
@@ -24,6 +40,7 @@ export default function MypagePage() {
           <div className="flex-1">
             {activeView === "lab-history" && <MypageLabHistory />}
             {activeView === "reports" && <MypageReports />}
+            {activeView === "ai-analysis" && <MypageAiAnalysis />}
             {activeView === "profile" && <MypageProfile />}
           </div>
         </div>

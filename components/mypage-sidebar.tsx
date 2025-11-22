@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { LogOut, User, FileText, BookOpen } from "lucide-react"
+import { LogOut, User, FileText, BookOpen, Brain } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/lib/auth-context"
@@ -18,8 +18,8 @@ import {
 import { useState } from "react"
 
 interface MypageSidebarProps {
-  activeView: "lab-history" | "reports" | "profile"
-  onViewChange: (view: "lab-history" | "reports" | "profile") => void
+  activeView: "lab-history" | "reports" | "profile" | "ai-analysis"
+  onViewChange: (view: "lab-history" | "reports" | "profile" | "ai-analysis") => void
 }
 
 export function MypageSidebar({ activeView, onViewChange }: MypageSidebarProps) {
@@ -35,6 +35,7 @@ export function MypageSidebar({ activeView, onViewChange }: MypageSidebarProps) 
   const menuItems = [
     { id: "lab-history" as const, label: "실습한 CVE", icon: BookOpen },
     { id: "reports" as const, label: "작성한 보고서", icon: FileText },
+    { id: "ai-analysis" as const, label: "AI 분석 결과", icon: Brain },
     { id: "profile" as const, label: "정보 수정", icon: User },
   ]
 
