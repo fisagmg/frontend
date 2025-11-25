@@ -15,6 +15,7 @@ import {
   createVM,
   getRemainingTime,
   terminateSession,
+  deleteVM,
   completeLabSession,
   cancelLabSession,
   getApiBaseUrl,
@@ -148,56 +149,8 @@ export default function LabStartPage({
 
     window.addEventListener("beforeunload", handleBeforeUnload)
 
-    const handleUnload = () => {
-      const raw = localStorage.getItem("active_lab_session")
-      if (!raw) {
-        return
-      }
-
-      try {
-        const session = JSON.parse(raw) as {
-          uuid?: string
-          cveId?: string
-          status?: string
-        }
-
-        if (!session?.uuid || !session.status || !["creating", "ready"].includes(session.status)) {
-          return
-        }
-
-        const token = localStorage.getItem("access_token")
-        if (!token) {
-          return
-        }
-
-        const url = `${getApiBaseUrl()}/api/labs/${session.uuid}/terminate`
-        try {
-          fetch(url, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            keepalive: true,
-          })
-        } catch (error) {
-          console.warn("Failed to terminate session on unload:", error)
-        }
-
-        if (session.cveId) {
-          localStorage.removeItem(`lab_session_${session.cveId}`)
-        }
-        localStorage.removeItem("active_lab_session")
-      } catch (error) {
-        console.warn("Failed to parse active lab session on unload:", error)
-        localStorage.removeItem("active_lab_session")
-      }
-    }
-
-    window.addEventListener("unload", handleUnload)
-
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload)
-      window.removeEventListener("unload", handleUnload)
     }
   }, [])
 
@@ -297,7 +250,7 @@ export default function LabStartPage({
         description: "VM을 종료하고 있습니다...",
       });
 
-      await terminateSession(vmId);
+      await deleteVM(vmId, cveId);
 
       setVmStatus("terminated");
       setTerminalUrl(null);
