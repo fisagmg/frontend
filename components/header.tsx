@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/lib/auth-context"
-import { terminateSession } from "@/lib/api"
 import { useCallback } from "react"
 
 const navItems = [
@@ -21,57 +20,11 @@ export function Header() {
   const { isAuthed, logout } = useAuth()
   const router = useRouter()
 
-  const handleActiveSessionGuard = useCallback(async () => {
-    if (typeof window === "undefined") return true
-
-    const raw = localStorage.getItem("active_lab_session")
-    if (!raw) return true
-
-    let session: { uuid?: string; cveId?: string; status?: string } | null = null
-    try {
-      session = JSON.parse(raw)
-    } catch (error) {
-      console.warn("Failed to parse active lab session from storage", error)
-      localStorage.removeItem("active_lab_session")
-      return true
-    }
-
-    if (!session || !session.status || !["creating", "ready"].includes(session.status)) {
-      return true
-    }
-
-    const confirmLeave = window.confirm(
-      "현재 생성 중이거나 실행 중인 실습 VM이 있습니다. 페이지를 이동하면 VM이 종료됩니다. 계속하시겠습니까?"
-    )
-
-    if (!confirmLeave) {
-      return false
-    }
-
-    try {
-      if (session.uuid) {
-        await terminateSession(session.uuid)
-      }
-    } catch (error) {
-      console.error("Failed to terminate active lab session while navigating:", error)
-    } finally {
-      if (session?.cveId) {
-        localStorage.removeItem(`lab_session_${session.cveId}`)
-      }
-      localStorage.removeItem("active_lab_session")
-    }
-
-    return true
-  }, [])
-
   const navigateWithGuard = useCallback(
-    async (href: string) => {
-      const canLeave = await handleActiveSessionGuard()
-      if (canLeave) {
-        router.push(href)
-      }
+    (href: string) => {
+      router.push(href)
     },
-    [handleActiveSessionGuard, router]
+    [router]
   )
 
   const handleNavClick = (href: string) => async (event: React.MouseEvent<HTMLAnchorElement>) => {
@@ -84,13 +37,8 @@ export function Header() {
     await navigateWithGuard("/")
   }
 
-  const handleLogout = async () => {
-    const canLeave = await handleActiveSessionGuard()
-    if (!canLeave) {
-      return
-    }
-
-    const confirmed = window.confirm("로그아웃하면 현재 세션이 종료됩니다. 계속하시겠습니까?")
+  const handleLogout = () => {
+    const confirmed = window.confirm("로그아웃하시겠습니까?")
     if (!confirmed) {
       return
     }
