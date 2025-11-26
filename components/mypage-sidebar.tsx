@@ -1,8 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { LogOut, User, FileText, BookOpen, Brain } from "lucide-react"
-import { LogOut, User, FileText, BookOpen, Settings } from "lucide-react"
+import { LogOut, User, FileText, BookOpen, Brain, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/lib/auth-context"

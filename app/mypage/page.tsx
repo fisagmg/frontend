@@ -87,13 +87,6 @@ export default function MypagePage() {
 
   return (
     <AuthGuard>
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">마이페이지</h1>
-          <p className="text-muted-foreground">
-            내 정보와 활동 내역을 관리하세요
-          </p>
-        </div>
       <div className={isAdminDetailView ? "min-h-screen" : "mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8"}>
         {!isAdminDetailView && (
           <div className="mb-8">
