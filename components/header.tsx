@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { User } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -52,8 +53,14 @@ export function Header() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link href="/" onClick={handleLogoClick} className="text-xl font-bold text-primary">
-              CVE LabHub
+            <Link href="/" onClick={handleLogoClick} className="flex items-center">
+              <Image 
+                src="/bluelogo.png" 
+                alt="CVE LabHub" 
+                width={150} 
+                height={40}
+                priority
+              />
             </Link>
             <nav className="hidden md:flex items-center gap-6">
               {navItems.map((item) => (

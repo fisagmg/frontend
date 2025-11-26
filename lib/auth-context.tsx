@@ -6,6 +6,7 @@ import { useRouter, usePathname } from "next/navigation"
 interface AuthContextType {
   isAuthed: boolean
   email: string | null
+  isAdmin: boolean
   login: (email: string) => void
   logout: () => void
 }
@@ -16,6 +17,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthed, setIsAuthed] = useState(false)
   const [email, setEmail] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+
+  // 관리자 이메일 목록 (환경변수나 설정으로 관리 가능)
+  const isAdmin = email === "ess5607@gmail.com"
 
   useEffect(() => {
     const storedAuth = localStorage.getItem("auth")
@@ -43,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return null
   }
 
-  return <AuthContext.Provider value={{ isAuthed, email, login, logout }}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={{ isAuthed, email, isAdmin, login, logout }}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {
