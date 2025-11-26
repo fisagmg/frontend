@@ -23,7 +23,7 @@ export default function RootLayout({
       <body className="font-sans antialiased flex flex-col min-h-screen">
         <AuthProvider>
           <Header />
-          <main className="flex-1 pt-16">{children}</main>
+          <main className="flex-1 pt-20">{children}</main>
           <Footer />
           <Toaster />
         </AuthProvider>
