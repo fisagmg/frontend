@@ -325,12 +325,10 @@ export async function extendSession(
  * @param uuid Lab 세션 UUID (vmId)
  */
 export async function terminateSession(
-  uuid: string
-): Promise<LabTerminateResponse> {
-  const response = await api.post<LabTerminateResponse>(
-    `/api/labs/${uuid}/terminate`
-  );
-  return response.data;
+  uuid: string,
+  cveId: string
+): Promise<LabDestroyResponse> {
+  return deleteVM(uuid, cveId);
 }
 
 export async function completeLabSession(
@@ -343,18 +341,15 @@ export async function completeLabSession(
 }
 
 export async function cancelLabSession(
-  uuid: string
-): Promise<LabTerminateResponse> {
-  const response = await api.post<LabTerminateResponse>(
-    `/api/labs/${uuid}/cancel`
-  );
-  return response.data;
+  uuid: string,
+  cveId: string
+): Promise<LabDestroyResponse> {
+  return deleteVM(uuid, cveId);
 }
 
 // ====================================
 // MyPage Profile API
 // ====================================
-
 export interface UserProfileResponse {
   id: number;
   email: string;
@@ -410,6 +405,114 @@ export async function changeMyPassword(
 export async function getCompletedLabs(): Promise<CompletedLabItem[]> {
   const response = await api.get<CompletedLabItem[]>(
     '/api/mypage/completed-cves'
+  );
+  return response.data;
+}
+
+// ============================================
+// Admin Lab APIs
+// ============================================
+
+export interface LabAdminLabSummary {
+  labUuid: string;
+  cveId: number;
+  cveName: string;
+  userEmail: string;
+  userDisplayName: string;
+  instanceId: string;
+  status: string;
+  createdAt: string;
+  expiresAt: string;
+  ttlRemainingSeconds: number | null;
+  ttlRemainingMinutes: number | null;
+  monitoringAvailable: boolean;
+}
+
+export interface LabAdminLabPageResponse {
+  content: LabAdminLabSummary[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
+}
+
+export interface LabAdminLabDetailResponse {
+  labUuid: string;
+  cveId: number;
+  cveName: string;
+  instanceId: string;
+  region: string;
+  status: string;
+  createdAt: string;
+  expiresAt: string;
+  terminatedAt: string | null;
+  maxTtlMinutes: number;
+  ttlRemainingSeconds: number | null;
+  ttlRemainingMinutes: number | null;
+  userId: number;
+  userEmail: string;
+  userDisplayName: string;
+}
+
+export interface LabMetricPoint {
+  timestamp: string;
+  value: number;
+}
+
+export interface LabLogEvent {
+  timestamp: string;
+  ingestionTime: string;
+  message: string;
+}
+
+export interface LabLogStreamResponse {
+  logGroup: string;
+  logStream: string;
+  events: LabLogEvent[];
+}
+
+export interface LabMetricsResponse {
+  labUuid: string;
+  instanceId: string;
+  region: string;
+  rangeMinutes: number;
+  cpu: LabMetricPoint[];
+  memory: LabMetricPoint[];
+  disk: LabMetricPoint[];
+  diskPath: string;
+  diskDevice: string;
+  diskFstype: string;
+  logs: LabLogStreamResponse[];
+}
+
+export async function getAdminLabs(
+  status?: string,
+  page: number = 0,
+  size: number = 20
+): Promise<LabAdminLabPageResponse> {
+  const params = new URLSearchParams();
+  if (status) params.append('status', status);
+  params.append('page', page.toString());
+  params.append('size', size.toString());
+  
+  const response = await api.get<LabAdminLabPageResponse>(
+    `/api/admin/labs?${params.toString()}`
+  );
+  return response.data;
+}
+
+export async function getAdminLabDetail(labUuid: string): Promise<LabAdminLabDetailResponse> {
+  const response = await api.get<LabAdminLabDetailResponse>(`/api/admin/labs/${labUuid}`);
+  return response.data;
+}
+
+export async function getAdminLabMetrics(
+  labUuid: string,
+  range: string = '1h'
+): Promise<LabMetricsResponse> {
+  const response = await api.get<LabMetricsResponse>(
+    `/api/admin/labs/${labUuid}/metrics?range=${range}`
   );
   return response.data;
 }

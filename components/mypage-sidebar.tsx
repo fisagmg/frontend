@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { LogOut, User, FileText, BookOpen } from "lucide-react"
+import { LogOut, User, FileText, BookOpen, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/lib/auth-context"
@@ -18,13 +18,13 @@ import {
 import { useState } from "react"
 
 interface MypageSidebarProps {
-  activeView: "lab-history" | "reports" | "profile"
-  onViewChange: (view: "lab-history" | "reports" | "profile") => void
+  activeView: "lab-history" | "reports" | "profile" | "admin-console"
+  onViewChange: (view: "lab-history" | "reports" | "profile" | "admin-console") => void
 }
 
 export function MypageSidebar({ activeView, onViewChange }: MypageSidebarProps) {
   const router = useRouter()
-  const { logout } = useAuth()
+  const { logout, isAdmin } = useAuth()
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
 
   const handleLogout = () => {
@@ -56,6 +56,19 @@ export function MypageSidebar({ activeView, onViewChange }: MypageSidebarProps) 
               </Button>
             )
           })}
+          {isAdmin && (
+            <>
+              <div className="pt-2 border-t border-border" />
+              <Button
+                variant={activeView === "admin-console" ? "secondary" : "ghost"}
+                className={cn("w-full justify-start", activeView === "admin-console" && "bg-primary/10 text-primary")}
+                onClick={() => onViewChange("admin-console")}
+              >
+                <Settings className="mr-2 h-4 w-4" />
+                관리자 콘솔
+              </Button>
+            </>
+          )}
           <div className="pt-2 border-t border-border">
             <Button
               variant="ghost"
