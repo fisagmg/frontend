@@ -49,28 +49,31 @@ export function Header() {
   }
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/95 backdrop-blur">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/30 bg-background/95 backdrop-blur">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex h-20 items-center justify-between">
-          <div className="flex items-center gap-8">
-            <Link href="/" onClick={handleLogoClick} className="flex items-center">
+          <div className="flex items-center gap-10">
+            <Link href="/" onClick={handleLogoClick} className="flex items-center mt-2">
               <Image 
-                src="/blacklogo.png" 
+                src="/lllo.png" 
                 alt="CVE LabHub" 
-                width={225} 
-                height={60}
+                width={225}
+                height={50}
                 priority
+                style={{objectFit: 'cover', height: '50px'}}
               />
             </Link>
-            <nav className="hidden md:flex items-center gap-6">
+            <nav className="hidden md:flex items-center gap-2">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={handleNavClick(item.href)}
                   className={cn(
-                    "text-sm font-medium transition-colors hover:text-primary",
-                    pathname === item.href ? "text-primary" : "text-muted-foreground",
+                    "text-base font-medium transition-colors px-4 py-2 rounded-md",
+                    pathname === item.href 
+                      ? "bg-primary/10 text-primary" 
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
                   {item.label}
@@ -80,8 +83,8 @@ export function Header() {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="사용자 메뉴">
-                <User className="h-5 w-5" />
+              <Button variant="ghost" size="icon" aria-label="사용자 메뉴" className="h-10 w-10">
+                <User className="h-6 w-6" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
