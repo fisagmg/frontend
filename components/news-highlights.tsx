@@ -83,7 +83,7 @@ export function NewsHighlights() {
             <button
               key={item.id}
               onClick={() => handleNewsClick(item.externalUrl)}
-              className="w-full flex gap-4 items-start px-4 py-3 rounded-lg hover:bg-muted transition-colors text-left"
+              className="w-full flex gap-4 items-start px-4 py-3 rounded-lg bg-card border border-border hover:bg-muted transition-colors text-left"
               aria-label={`${item.title} - 외부 링크로 이동`}
             >
               <div className="flex-shrink-0 w-24 h-16 rounded bg-muted overflow-hidden">

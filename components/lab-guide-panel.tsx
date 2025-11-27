@@ -38,13 +38,13 @@ export function LabGuidePanel({ cveId, metadata }: LabGuidePanelProps) {
   // 코드 블록 컴포넌트
   const CodeBlock = ({ code, id }: { code: string; id: string }) => (
     <div className="relative group">
-      <pre className="bg-muted p-3 rounded text-xs overflow-x-auto border border-border">
+      <pre className="bg-slate-100 p-3 rounded text-xs text-black overflow-x-auto border border-slate-200">
         <code>{code}</code>
       </pre>
       <Button
         size="sm"
         variant="ghost"
-        className="absolute top-2 right-2 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute top-2 right-2 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-slate-200 text-slate-500"
         onClick={() => copyToClipboard(code, id)}
       >
         {copiedCode === id ? (
@@ -62,29 +62,37 @@ export function LabGuidePanel({ cveId, metadata }: LabGuidePanelProps) {
     pre: ({ children, ...props }: any) => (
       <pre
         {...props}
-        className="bg-secondary p-3 rounded text-xs overflow-x-auto border border-border my-3"
+        className="bg-slate-100 p-3 rounded text-xs text-black overflow-x-auto border border-slate-200 my-3"
       >
         {children}
       </pre>
     ),
+    h1: (props: any) => <h1 {...props} className="text-2xl font-bold text-black mt-6 mb-4" />,
+    h2: (props: any) => <h2 {...props} className="text-xl font-bold text-black mt-5 mb-3" />,
+    h3: (props: any) => <h3 {...props} className="text-lg font-bold text-black mt-4 mb-2" />,
+    p: (props: any) => <p {...props} className="text-black mb-4 leading-relaxed" />,
+    ul: (props: any) => <ul {...props} className="list-disc list-inside text-black mb-4 space-y-1" />,
+    ol: (props: any) => <ol {...props} className="list-decimal list-inside text-black mb-4 space-y-1" />,
+    li: (props: any) => <li {...props} className="text-black" />,
+    strong: (props: any) => <strong {...props} className="font-bold text-black" />,
   };
 
   return (
     <>
-      <div className="p-4 border-b border-border sticky top-0 bg-card z-10">
-        <h2 className="text-lg font-bold">{metadata.title}</h2>
-        <p className="text-xs text-muted-foreground mt-1">
+      <div className="p-4 border-b border-slate-200 sticky top-0 bg-white z-10">
+        <h2 className="text-lg font-bold text-slate-900">{metadata.title}</h2>
+        <p className="text-xs text-slate-500 mt-1">
           {metadata.subtitle}
         </p>
       </div>
 
       {MDXContent ? (
-        <div className="lab-guide-content p-4">
+        <div className="lab-guide-content p-4 text-slate-900">
           <MDXContent components={components} />
         </div>
       ) : (
         <div className="p-4">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-slate-500">
             가이드를 불러오는 중...
           </p>
         </div>

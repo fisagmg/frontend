@@ -155,6 +155,7 @@ export default function LabStartPage({
   }, [])
 
   const handleCreateVm = async () => {
+    console.log('[VM 생성] 시작');
     setShowCreateVmDialog(false);
     setVmStatus("creating");
     setTimerStarted(false);
@@ -177,7 +178,9 @@ export default function LabStartPage({
         description: "취약 환경을 구성하고 있습니다...",
       });
 
+      console.log('[VM 생성] API 호출 시작:', cveId);
       const response = await createVM(cveId);
+      console.log('[VM 생성] API 호출 성공:', response);
 
       setVmId(response.uuid);
       setTerminalUrl(response.guacamoleUrl ?? null);
@@ -318,7 +321,7 @@ export default function LabStartPage({
 
     if (vmId) {
       try {
-        await cancelLabSession(vmId);
+        await cancelLabSession(vmId, cveId);
       } catch (error) {
         console.error("타임아웃 처리 실패:", error);
       } finally {
@@ -335,13 +338,22 @@ export default function LabStartPage({
     router.push("/");
   };
 
-  const handleOpenReport = async () => {
+  const handleOpenReport = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    console.log('[보고서 작성] 버튼 클릭됨');
     setIsCreatingReport(true);
+    
     try {
       const userId = 1; // TODO: 실제 userId 획득 로직 추가 필요
       const reportName = `${cveId}_보고서_${new Date().toISOString().split("T")[0]}`;
 
+      console.log('[보고서 작성] API 호출 시작:', { userId, cveId, reportName });
       const report = await createReport(userId, cveId, reportName);
+      console.log('[보고서 작성] API 호출 성공:', report);
 
       if (report.presignedDownloadUrl) {
         window.open(report.presignedDownloadUrl, "_blank");
@@ -352,10 +364,10 @@ export default function LabStartPage({
         description: "새 탭에서 워드 파일을 다운로드하여 편집하세요.",
       });
     } catch (error) {
-      console.error("보고서 생성 실패:", error);
+      console.error("[보고서 작성] 오류 발생:", error);
       toast({
         title: "보고서 생성 실패",
-        description: "보고서 생성 중 오류가 발생했습니다.",
+        description: error instanceof Error ? error.message : "보고서 생성 중 오류가 발생했습니다.",
         variant: "destructive",
       });
     } finally {
@@ -365,56 +377,169 @@ export default function LabStartPage({
 
   return (
     <AuthGuard>
-      <div className="fixed inset-0 pt-16 bg-background">
-        <div className="border-b border-border bg-card px-4 py-3">
+      <div className="fixed top-20 left-0 right-0 bottom-0 bg-background flex flex-col">
+        <div className="border-b border-border bg-card px-4 py-3 flex-shrink-0 relative z-[100]">
           <div className="mx-auto max-w-7xl flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <Button
-                onClick={handleOpenReport}
-                variant="outline"
-                size="sm"
+            <div className="flex items-center gap-3 relative z-[101]">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('[보고서 작성] 버튼 직접 클릭됨!');
+                  handleOpenReport();
+                }}
                 disabled={isCreatingReport}
+                style={{
+                  backgroundColor: '#3f3f46',
+                  color: 'white',
+                  border: '1px solid #52525b',
+                  padding: '0.375rem 0.75rem',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  cursor: isCreatingReport ? 'not-allowed' : 'pointer',
+                  opacity: isCreatingReport ? 0.5 : 1,
+                  position: 'relative',
+                  zIndex: 9999,
+                  pointerEvents: 'auto',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isCreatingReport) {
+                    e.currentTarget.style.backgroundColor = '#52525b';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isCreatingReport) {
+                    e.currentTarget.style.backgroundColor = '#3f3f46';
+                  }
+                }}
               >
                 {isCreatingReport ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin inline" />
                     생성 중...
                   </>
                 ) : (
                   "보고서 작성"
                 )}
-              </Button>
-              <Button
-                onClick={() => setShowCreateVmDialog(true)}
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log("&*&*&*&*&*므ㅓㄹ봐")
+                  e.stopPropagation();
+                  console.log('[VM 생성] 버튼 직접 클릭됨!');
+                  setShowCreateVmDialog(true);
+                }}
                 disabled={vmStatus === "creating" || vmStatus === "ready"}
-                variant="outline"
-                size="sm"
+                style={{
+                  backgroundColor: '#3f3f46',
+                  color: 'white',
+                  border: '1px solid #52525b',
+                  padding: '0.375rem 0.75rem',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  cursor: (vmStatus === "creating" || vmStatus === "ready") ? 'not-allowed' : 'pointer',
+                  opacity: (vmStatus === "creating" || vmStatus === "ready") ? 0.5 : 1,
+                  position: 'relative',
+                  zIndex: 9999,
+                  pointerEvents: 'auto',
+                }}
+                onMouseEnter={(e) => {
+                  if (vmStatus !== "creating" && vmStatus !== "ready") {
+                    e.currentTarget.style.backgroundColor = '#52525b';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (vmStatus !== "creating" && vmStatus !== "ready") {
+                    e.currentTarget.style.backgroundColor = '#3f3f46';
+                  }
+                }}
               >
                 {vmStatus === "creating" ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin inline" />
                     생성 중...
                   </>
                 ) : (
                   "VM 생성"
                 )}
-              </Button>
-              <Button
-                onClick={() => setShowStopVmDialog(true)}
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('[VM 종료] 버튼 직접 클릭됨!');
+                  setShowStopVmDialog(true);
+                }}
                 disabled={vmStatus !== "ready"}
-                variant="outline"
-                size="sm"
+                style={{
+                  backgroundColor: '#3f3f46',
+                  color: 'white',
+                  border: '1px solid #52525b',
+                  padding: '0.375rem 0.75rem',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  cursor: vmStatus !== "ready" ? 'not-allowed' : 'pointer',
+                  opacity: vmStatus !== "ready" ? 0.5 : 1,
+                  position: 'relative',
+                  zIndex: 9999,
+                  pointerEvents: 'auto',
+                }}
+                onMouseEnter={(e) => {
+                  if (vmStatus === "ready") {
+                    e.currentTarget.style.backgroundColor = '#52525b';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (vmStatus === "ready") {
+                    e.currentTarget.style.backgroundColor = '#3f3f46';
+                  }
+                }}
               >
                 VM 종료
-              </Button>
-              <Button
-                onClick={() => setShowCompleteDialog(true)}
-                variant="default"
-                size="sm"
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('[실습 완료] 버튼 직접 클릭됨!');
+                  setShowCompleteDialog(true);
+                }}
                 disabled={vmStatus !== "ready" && vmStatus !== "terminated"}
+                style={{
+                  backgroundColor: '#2563eb',
+                  color: 'white',
+                  border: '1px solid #1d4ed8',
+                  padding: '0.375rem 0.75rem',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  cursor: (vmStatus !== "ready" && vmStatus !== "terminated") ? 'not-allowed' : 'pointer',
+                  opacity: (vmStatus !== "ready" && vmStatus !== "terminated") ? 0.5 : 1,
+                  position: 'relative',
+                  zIndex: 9999,
+                  pointerEvents: 'auto',
+                }}
+                onMouseEnter={(e) => {
+                  if (vmStatus === "ready" || vmStatus === "terminated") {
+                    e.currentTarget.style.backgroundColor = '#1d4ed8';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (vmStatus === "ready" || vmStatus === "terminated") {
+                    e.currentTarget.style.backgroundColor = '#2563eb';
+                  }
+                }}
               >
                 실습 완료
-              </Button>
+              </button>
             </div>
             <div className="flex items-center gap-3">
               {vmStatus === "ready" && vmId && expiresAt && (
@@ -447,10 +572,10 @@ export default function LabStartPage({
           </div>
         </div>
 
-        <div className="h-[calc(100vh-8rem)] flex relative">
+        <div className="flex-1 flex relative overflow-hidden">
           {/* Left: Guide Panel */}
           <div
-            className={`border-r border-border bg-card overflow-y-auto transition-all duration-300 ${
+            className={`border-r border-border bg-white text-slate-900 overflow-y-auto transition-all duration-300 ${
               isPanelCollapsed ? "w-0" : "w-[30%]"
             }`}
             style={{
@@ -483,7 +608,7 @@ export default function LabStartPage({
           </Button>
 
           {/* Right: VM Area */}
-          <div className="flex-1 p-4 bg-muted/20">
+          <div className="flex-1 p-4 bg-slate-50">
             <div className="h-full rounded-lg border border-border bg-card flex items-center justify-center">
               {vmStatus === "idle" && (
                 <div className="text-center space-y-4">
