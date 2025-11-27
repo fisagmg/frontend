@@ -38,7 +38,7 @@ export function MultiFilterTrigger({ label, selected, onChange, options }: Multi
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" className="h-9 text-sm gap-1.5 bg-transparent">
+        <Button variant="ghost" className="h-9 text-sm gap-1.5 bg-zinc-100/80 hover:bg-zinc-200/80 text-zinc-900">
           {displayText}
           <ChevronDown className="h-3.5 w-3.5 opacity-50" />
         </Button>

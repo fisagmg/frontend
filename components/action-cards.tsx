@@ -51,18 +51,18 @@ export function ActionCards() {
           return (
             <Card
               key={action.href}
-              className="hover:border-primary/50 transition-colors cursor-pointer"
+              className="bg-white border-zinc-200 hover:border-primary/50 transition-colors cursor-pointer shadow-sm"
               onClick={() => handleClick(action.href, action.requiresAuth)}
             >
               <CardHeader>
                 <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 mb-4">
                   <Icon className="w-6 h-6 text-primary" />
                 </div>
-                <CardTitle className="text-xl">{action.title}</CardTitle>
-                <CardDescription>{action.description}</CardDescription>
+                <CardTitle className="text-xl text-zinc-900">{action.title}</CardTitle>
+                <CardDescription className="text-zinc-600">{action.description}</CardDescription>
               </CardHeader>
               <CardContent>
-                <Button variant="ghost" className="w-full">
+                <Button variant="ghost" className="w-full bg-zinc-100 text-zinc-900 hover:bg-zinc-200">
                   시작하기
                 </Button>
               </CardContent>
