@@ -138,158 +138,200 @@ export default async function CVEDetailPage({
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <div className="flex gap-8">
-        {/* Main Content */}
-        <div className="flex-1 min-w-0">
-          <Card>
-            <CardHeader>
-              <div className="flex items-start justify-between gap-4 mb-4">
-                <div className="space-y-2">
-                  <CardTitle className="text-3xl font-bold">
-                    {metadata.id}
-                  </CardTitle>
-                  <p className="text-xl text-muted-foreground">
-                    {metadata.title}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <SeverityBadge
-                    score={metadata.cvssScore}
-                    level={metadata.severity}
-                  />
-                  <Button asChild size="lg" className="gap-2">
-                    <Link href={`/lab/${cveId}/start`}>
-                      <Code2 className="w-4 h-4" />
-                      실습하기
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-              <p className="text-base text-muted-foreground leading-relaxed">
-                {metadata.summary}
-              </p>
-            </CardHeader>
-
-            <CardContent className="space-y-8">
-              {/* Quick Info Section */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
-                <div>
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-2 flex items-center gap-2">
-                    <ExternalLink className="w-4 h-4" />
-                    참고 링크
-                  </h3>
-                  <div className="space-y-1">
-                    {metadata.nvdUrl && (
-                      <a
-                        href={metadata.nvdUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-primary hover:underline block"
-                      >
-                        NVD 상세정보
-                      </a>
-                    )}
+    <div className="min-h-screen bg-zinc-50">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="flex gap-8">
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
+            <Card className="bg-white shadow-sm ring-1 ring-zinc-900/5 border-none">
+              <CardHeader>
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div className="space-y-2">
+                    <CardTitle className="text-3xl font-bold text-zinc-900">
+                      {metadata.id}
+                    </CardTitle>
+                    <p className="text-xl text-zinc-600">
+                      {metadata.title}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <SeverityBadge
+                      score={metadata.cvssScore}
+                      level={metadata.severity}
+                    />
+                    <Button asChild size="lg" className="gap-2 bg-zinc-900 text-white hover:bg-zinc-800 shadow-sm">
+                      <Link href={`/lab/${cveId}/start`}>
+                        <Code2 className="w-4 h-4" />
+                        실습하기
+                      </Link>
+                    </Button>
                   </div>
                 </div>
+                <p className="text-base text-zinc-600 leading-relaxed">
+                  {metadata.summary}
+                </p>
+              </CardHeader>
 
-                <div>
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-2 flex items-center gap-2">
-                    <Target className="w-4 h-4" />
-                    영향받는 대상
-                  </h3>
-                  <div className="space-y-1">
-                    {metadata.target?.map((t: string, idx: number) => (
-                      <Badge key={idx} variant="secondary" className="mr-2">
-                        {t}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                {metadata.attackComplexity && (
+              <CardContent className="space-y-8">
+                {/* Quick Info Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-zinc-50 rounded-lg border border-zinc-200">
                   <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-2">
-                      공격 복잡도
+                    <h3 className="text-sm font-semibold text-zinc-900 mb-2 flex items-center gap-2">
+                      <ExternalLink className="w-4 h-4 text-zinc-500" />
+                      참고 링크
                     </h3>
-                    <Badge variant="outline">{metadata.attackComplexity}</Badge>
+                    <div className="space-y-1">
+                      {metadata.nvdUrl && (
+                        <a
+                          href={metadata.nvdUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:text-blue-800 hover:underline block font-medium"
+                        >
+                          NVD 상세정보
+                        </a>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-semibold text-zinc-900 mb-2 flex items-center gap-2">
+                      <Target className="w-4 h-4 text-zinc-500" />
+                      영향받는 대상
+                    </h3>
+                    <div className="space-y-1">
+                      {metadata.target?.map((t: string, idx: number) => (
+                        <Badge key={idx} variant="secondary" className="mr-2 bg-white border border-zinc-300 text-zinc-800 shadow-sm font-medium">
+                          {t}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  {metadata.attackComplexity && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-zinc-900 mb-2">
+                        공격 복잡도
+                      </h3>
+                      <Badge variant="outline" className="bg-white text-zinc-800 border-zinc-300 font-medium">{metadata.attackComplexity}</Badge>
+                    </div>
+                  )}
+
+                  <div>
+                    <h3 className="text-sm font-semibold text-zinc-900 mb-2">
+                      공개일
+                    </h3>
+                    <p className="text-sm text-zinc-800 font-medium">{metadata.publishedDate}</p>
+                  </div>
+                </div>
+
+                {/* Tags */}
+                {metadata.tags && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-zinc-900 mb-3">
+                      관련 기술
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {metadata.tags.map((tag: string) => (
+                        <Badge key={tag} variant="outline" className="px-3 py-1 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 font-medium">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                 )}
 
-                <div>
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-2">
-                    공개일
-                  </h3>
-                  <p className="text-sm">{metadata.publishedDate}</p>
-                </div>
-              </div>
-
-              {/* Tags */}
-              {metadata.tags && (
-                <div>
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">
-                    관련 기술
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {metadata.tags.map((tag: string) => (
-                      <Badge key={tag} variant="outline" className="px-3 py-1">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* MDX Content - prose 클래스 설정 개선 */}
-              <article className="prose prose-slate dark:prose-invert max-w-none prose-table:border-collapse prose-th:border prose-th:border-border prose-td:border prose-td:border-border">
-                <MDXContent />
-              </article>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Table of Contents - Sticky Sidebar */}
-        <aside className="hidden lg:block w-64 flex-shrink-0">
-          <div className="sticky top-6">
-            <Card className="p-4">
-              <h3 className="font-semibold mb-4 text-sm uppercase text-muted-foreground">
-                목차
-              </h3>
-              <nav className="space-y-2">
-                <a
-                  href="#취약점-개요"
-                  className="block text-sm hover:text-primary transition-colors py-1.5 border-l-2 border-transparent hover:border-primary pl-3"
-                >
-                  취약점 개요
-                </a>
-                <a
-                  href="#공격-시나리오"
-                  className="block text-sm hover:text-primary transition-colors py-1.5 border-l-2 border-transparent hover:border-primary pl-3"
-                >
-                  공격 시나리오
-                </a>
-                <a
-                  href="#실습-환경-구성"
-                  className="block text-sm hover:text-primary transition-colors py-1.5 border-l-2 border-transparent hover:border-primary pl-3"
-                >
-                  실습 환경 구성
-                </a>
-                <a
-                  href="#패치-정보"
-                  className="block text-sm hover:text-primary transition-colors py-1.5 border-l-2 border-transparent hover:border-primary pl-3"
-                >
-                  패치 정보
-                </a>
-                <a
-                  href="#참고-자료"
-                  className="block text-sm hover:text-primary transition-colors py-1.5 border-l-2 border-transparent hover:border-primary pl-3"
-                >
-                  참고 자료
-                </a>
-              </nav>
+                {/* MDX Content - prose 클래스 설정 개선 */}
+                <article className="prose prose-slate max-w-none 
+                  !text-zinc-800
+                  [&>*]:!text-zinc-800
+                  prose-headings:!text-zinc-900 
+                  prose-headings:!font-bold 
+                  prose-p:!text-zinc-800 
+                  prose-p:!leading-relaxed 
+                  prose-strong:!text-zinc-900 
+                  prose-strong:!font-semibold 
+                  prose-code:!text-pink-600 
+                  prose-code:!bg-pink-50 
+                  prose-code:!px-1 
+                  prose-code:!py-0.5 
+                  prose-code:!rounded 
+                  prose-li:!text-zinc-800 
+                  prose-ol:!text-zinc-800 
+                  prose-ul:!text-zinc-800 
+                  prose-blockquote:!text-zinc-700 
+                  prose-blockquote:!border-zinc-300 
+                  prose-a:!text-blue-600 
+                  prose-a:!no-underline 
+                  hover:prose-a:!underline 
+                  prose-table:!border-collapse 
+                  prose-th:!border 
+                  prose-th:!border-zinc-300 
+                  prose-th:!bg-zinc-50 
+                  prose-th:!text-zinc-900 
+                  prose-td:!border 
+                  prose-td:!border-zinc-200 
+                  prose-td:!text-zinc-800
+                  [&_h1]:!text-zinc-900
+                  [&_h2]:!text-zinc-900
+                  [&_h3]:!text-zinc-900
+                  [&_h4]:!text-zinc-900
+                  [&_p]:!text-zinc-800
+                  [&_li]:!text-zinc-800
+                  [&_strong]:!text-zinc-900
+                  [&_a]:!text-blue-600
+                  [&_a]:!font-medium
+                  [&_ul]:!text-zinc-800
+                  [&_ol]:!text-zinc-800">
+                  <MDXContent />
+                </article>
+              </CardContent>
             </Card>
           </div>
-        </aside>
+
+          {/* Table of Contents - Sticky Sidebar */}
+          <aside className="hidden lg:block w-64 flex-shrink-0">
+            <div className="sticky top-6">
+              <Card className="p-4 bg-white shadow-sm ring-1 ring-zinc-900/5 border-none">
+                <h3 className="font-semibold mb-4 text-sm uppercase text-zinc-900">
+                  목차
+                </h3>
+                <nav className="space-y-2">
+                  <a
+                    href="#취약점-개요"
+                    className="block text-sm text-zinc-700 hover:text-zinc-900 font-medium transition-colors py-1.5 border-l-2 border-transparent hover:border-zinc-900 pl-3"
+                  >
+                    취약점 개요
+                  </a>
+                  <a
+                    href="#공격-시나리오"
+                    className="block text-sm text-zinc-700 hover:text-zinc-900 font-medium transition-colors py-1.5 border-l-2 border-transparent hover:border-zinc-900 pl-3"
+                  >
+                    공격 시나리오
+                  </a>
+                  <a
+                    href="#실습-환경-구성"
+                    className="block text-sm text-zinc-700 hover:text-zinc-900 font-medium transition-colors py-1.5 border-l-2 border-transparent hover:border-zinc-900 pl-3"
+                  >
+                    실습 환경 구성
+                  </a>
+                  <a
+                    href="#패치-정보"
+                    className="block text-sm text-zinc-700 hover:text-zinc-900 font-medium transition-colors py-1.5 border-l-2 border-transparent hover:border-zinc-900 pl-3"
+                  >
+                    패치 정보
+                  </a>
+                  <a
+                    href="#참고-자료"
+                    className="block text-sm text-zinc-700 hover:text-zinc-900 font-medium transition-colors py-1.5 border-l-2 border-transparent hover:border-zinc-900 pl-3"
+                  >
+                    참고 자료
+                  </a>
+                </nav>
+              </Card>
+            </div>
+          </aside>
+        </div>
       </div>
     </div>
   );

@@ -49,69 +49,71 @@ export default function NewsPage() {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">보안 이슈 뉴스</h1>
-        <p className="text-muted-foreground">실제 해킹/침해·취약 악용 등 실무 관련 사건 중심</p>
-      </div>
-
-      <div className="mb-6 flex justify-end">
-        <div className="w-full md:w-1/2 lg:w-1/3">
-          <SearchBar onSearch={setSearchQuery} placeholder="뉴스 검색..." />
+    <div className="min-h-screen bg-zinc-50">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2 text-zinc-900">보안 이슈 뉴스</h1>
+          <p className="text-zinc-600">실제 해킹/침해·취약 악용 등 실무 관련 사건 중심</p>
         </div>
-      </div>
 
-      <div className="rounded-lg border border-border bg-card">
-        {isLoading ? (
-          <div className="p-6 space-y-3">
-            {Array.from({ length: 10 }).map((_, index) => (
-              <div key={index} className="h-10 rounded bg-muted/40 animate-pulse" />
-            ))}
+        <div className="mb-6 flex justify-end">
+          <div className="w-full md:w-1/2 lg:w-1/3">
+            <SearchBar onSearch={setSearchQuery} placeholder="뉴스 검색..." />
           </div>
-        ) : error ? (
-          <div className="p-6 text-sm text-destructive">{error}</div>
-        ) : filteredNews.length === 0 ? (
-          <div className="p-6 text-sm text-muted-foreground">검색 조건에 해당하는 뉴스가 없습니다.</div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-20">번호</TableHead>
-                <TableHead>제목</TableHead>
-                <TableHead className="w-32">출처</TableHead>
-                <TableHead className="w-32">날짜</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedNews.map((item, idx) => (
-                <TableRow key={item.id} className="hover:bg-muted/50">
-                  <TableCell>{startIndex + idx + 1}</TableCell>
-                  <TableCell>
-                    <a
-                      href={item.externalUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-primary hover:underline"
-                      title="외부 링크로 이동"
-                    >
-                      {item.title}
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </TableCell>
-                  <TableCell>{item.publisher}</TableCell>
-                  <TableCell>{formatDate(item.createdAt)}</TableCell>
-                </TableRow>
+        </div>
+
+        <div className="rounded-lg bg-white shadow-sm ring-1 ring-zinc-900/5">
+          {isLoading ? (
+            <div className="p-6 space-y-3">
+              {Array.from({ length: 10 }).map((_, index) => (
+                <div key={index} className="h-10 rounded bg-zinc-100 animate-pulse" />
               ))}
-            </TableBody>
-          </Table>
+            </div>
+          ) : error ? (
+            <div className="p-6 text-sm text-red-500">{error}</div>
+          ) : filteredNews.length === 0 ? (
+            <div className="p-6 text-sm text-zinc-500">검색 조건에 해당하는 뉴스가 없습니다.</div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="border-zinc-100 hover:bg-zinc-50/50">
+                  <TableHead className="w-20 text-zinc-500">번호</TableHead>
+                  <TableHead className="text-zinc-500">제목</TableHead>
+                  <TableHead className="w-32 text-zinc-500">출처</TableHead>
+                  <TableHead className="w-32 text-zinc-500">날짜</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedNews.map((item, idx) => (
+                  <TableRow key={item.id} className="hover:bg-zinc-50 border-zinc-100">
+                    <TableCell className="text-zinc-600">{startIndex + idx + 1}</TableCell>
+                    <TableCell>
+                      <a
+                        href={item.externalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-primary hover:underline"
+                        title="외부 링크로 이동"
+                      >
+                        <span className="text-zinc-900 font-medium">{item.title}</span>
+                        <ExternalLink className="h-3 w-3 text-zinc-400" />
+                      </a>
+                    </TableCell>
+                    <TableCell className="text-zinc-600">{item.publisher}</TableCell>
+                    <TableCell className="text-zinc-600">{formatDate(item.createdAt)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </div>
+
+        {!isLoading && !error && filteredNews.length > 0 && (
+          <div className="mt-6">
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+          </div>
         )}
       </div>
-
-      {!isLoading && !error && filteredNews.length > 0 && (
-        <div className="mt-6">
-          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
-        </div>
-      )}
     </div>
   )
 }
