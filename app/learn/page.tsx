@@ -9,15 +9,17 @@ import { Pagination } from "@/components/pagination"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { CheckCircle } from "lucide-react"
+import { CheckCircle, ChevronDown, ChevronUp } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 
 const ITEMS_PER_PAGE = 9
 
 export default function LearnPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
+  const [isCompletedOpen, setIsCompletedOpen] = useState(true)
 
   const [yearFilter, setYearFilter] = useState<string>("all")
   const [severityFilter, setSeverityFilter] = useState<string>("all")
@@ -78,7 +80,7 @@ export default function LearnPage() {
   const totalPages = Math.ceil(filteredCVEs.length / ITEMS_PER_PAGE)
   const paginatedCVEs = filteredCVEs.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
 
-  // "분류별로 이어서 학습하기"용 데이터 (완료된 항목들 예시)
+  // "완료된 학습"용 데이터 (완료된 항목들 예시)
   const continueLearningItems = useMemo(() => {
     // 실제로는 완료된 항목이나 진행중인 항목을 가져와야 함
     // 여기서는 mockLabHistory에 있는 항목들을 사용하고, 부족하면 mockCVEs에서 몇 개 가져와서 보여줌
@@ -86,54 +88,96 @@ export default function LearnPage() {
     return items.length > 0 ? items : mockCVEs.slice(0, 4);
   }, [completedCVEIds])
 
+  // Circle Chart Calc
+  const radius = 45 // 반지름 키움
+  const circumference = 2 * Math.PI * radius
+  const percentage = (stats.completed / stats.total) * 100
+  const strokeDashoffset = circumference - (percentage / 100) * circumference
+
 
   return (
     <div className="min-h-screen bg-zinc-50">
       {/* Hero / Stats Section */}
-      <div className="bg-[#1e293b] text-white relative overflow-hidden">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 relative z-10">
-          <div className="flex flex-col md:flex-row justify-between items-center">
+      <div className="bg-gradient-to-br from-slate-950 via-[#2e4057] to-slate-950 text-white relative overflow-hidden">
+        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 relative z-10">
+          <div className="flex flex-col lg:flex-row justify-between items-center gap-8">
             {/* Left Side: Stats */}
-            <div className="flex flex-col space-y-6 md:max-w-xl">
-              <h1 className="text-4xl font-bold text-white tracking-tight">Challenges</h1>
+            <div className="flex flex-col space-y-6 w-full lg:w-auto">
+              <h1 className="text-3xl font-bold text-white tracking-tight">Challenges</h1>
               
-              <div className="flex flex-wrap items-center gap-8 md:gap-12">
-                {/* Total / Completed */}
-                <div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-5xl font-bold text-white">{stats.completed}</span>
-                    <span className="text-xl text-zinc-400 font-light">/ {stats.total}</span>
+              <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
+                {/* Circular Progress Section */}
+                <div className="flex items-center gap-8">
+                  {/* Circle Chart */}
+                  <div className="relative w-36 h-36">
+                    <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                      {/* Background Circle */}
+                      <circle
+                        className="text-zinc-700/50"
+                        strokeWidth="8"
+                        stroke="currentColor"
+                        fill="transparent"
+                        r={radius}
+                        cx="50"
+                        cy="50"
+                      />
+                      {/* Progress Circle */}
+                      <circle
+                        className="text-emerald-400 transition-all duration-1000 ease-out"
+                        strokeWidth="8"
+                        strokeDasharray={circumference}
+                        strokeDashoffset={strokeDashoffset}
+                        strokeLinecap="round"
+                        stroke="currentColor"
+                        fill="transparent"
+                        r={radius}
+                        cx="50"
+                        cy="50"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-3xl font-bold text-white">{percentage.toFixed(1)}%</span>
+                    </div>
                   </div>
-                  <p className="text-sm text-zinc-400 mt-1">Challenges</p>
+
+                  {/* Stats Text */}
+                  <div className="flex flex-col justify-center">
+                     <div className="flex items-baseline gap-1.5 mb-1">
+                        <span className="text-5xl font-bold text-white">{stats.completed}</span>
+                        <span className="text-xl text-zinc-400 font-light">/{stats.total}</span>
+                     </div>
+                     <div className="text-sm text-zinc-300 font-medium">완료된 Challenges</div>
+                  </div>
                 </div>
 
-                <div className="h-12 w-px bg-zinc-700 hidden sm:block" />
+                {/* Divider */}
+                <div className="hidden md:block w-px h-24 bg-white/10" />
 
                 {/* Difficulty Stats */}
-                <div className="flex gap-8 md:gap-12">
-                  <div>
-                    <div className="text-3xl font-bold text-white">{stats.easy}</div>
-                    <div className="text-sm text-zinc-400 mt-1 leading-tight">Easy<br/>Challenges</div>
-                  </div>
-                  <div>
-                    <div className="text-3xl font-bold text-white">{stats.medium}</div>
-                    <div className="text-sm text-zinc-400 mt-1 leading-tight">Medium<br/>Challenges</div>
-                  </div>
-                  <div>
-                    <div className="text-3xl font-bold text-white">{stats.hard}</div>
-                    <div className="text-sm text-zinc-400 mt-1 leading-tight">Hard<br/>Challenges</div>
-                  </div>
+                <div className="flex gap-10">
+                    <div>
+                      <div className="text-3xl font-bold text-white">{stats.easy}</div>
+                      <div className="text-sm text-zinc-400 mt-1 leading-tight">Easy<br/>Challenges</div>
+                    </div>
+                    <div>
+                      <div className="text-3xl font-bold text-white">{stats.medium}</div>
+                      <div className="text-sm text-zinc-400 mt-1 leading-tight">Medium<br/>Challenges</div>
+                    </div>
+                    <div>
+                      <div className="text-3xl font-bold text-white">{stats.hard}</div>
+                      <div className="text-sm text-zinc-400 mt-1 leading-tight">Hard<br/>Challenges</div>
+                    </div>
                 </div>
               </div>
             </div>
 
             {/* Right Side: Image */}
-            <div className="mt-8 md:mt-0 relative w-full md:w-[400px] h-[200px] flex items-center justify-center md:justify-end">
+            <div className="mt-4 lg:mt-0 relative w-full max-w-[220px] h-[110px] flex items-center justify-center lg:justify-end">
               <Image
-                src="/lllo.png"
+                src="/mango2.png"
                 alt="Cyber Security Network Graph"
-                width={400}
-                height={200}
+                width={220}
+                height={110}
                 className="object-contain opacity-90"
                 priority
               />
@@ -142,35 +186,50 @@ export default function LearnPage() {
         </div>
 
         {/* Background Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#1e293b] via-[#1e293b]/90 to-transparent z-0 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-900/60 to-transparent z-0 pointer-events-none" />
       </div>
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         
-        {/* Continue Learning Accordion Section */}
-        <div className="mb-8">
-          <Accordion type="single" collapsible defaultValue="continue-learning" className="w-full">
-            <AccordionItem value="continue-learning" className="border rounded-lg bg-white shadow-sm px-6">
-              <AccordionTrigger className="hover:no-underline py-4">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-emerald-500" />
-                  <span className="font-semibold text-zinc-900">분류별로 이어서 학습하기</span>
+        {/* Continue Learning Section */}
+        <div className="mb-8 border border-zinc-100 rounded-lg bg-white shadow-sm">
+          <Collapsible open={isCompletedOpen} onOpenChange={setIsCompletedOpen} className="w-full">
+            <div className="px-6 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="rounded-full bg-emerald-500 p-1">
+                   <CheckCircle className="h-3 w-3 text-white" strokeWidth={3} />
                 </div>
-              </AccordionTrigger>
-              <AccordionContent className="pb-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+                <span className="font-semibold text-zinc-900">완료된 학습</span>
+              </div>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="w-9 p-0 h-8">
+                  {isCompletedOpen ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                  <span className="sr-only">Toggle</span>
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+            
+            <CollapsibleContent>
+              <div className="px-6 pb-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                   {continueLearningItems.map((item) => (
-                    <Card key={item.id} className="border border-zinc-200 shadow-sm hover:shadow-md transition-shadow">
-                      <CardHeader className="p-4 pb-2 space-y-1">
-                        <div className="flex justify-between items-start">
-                          <CardTitle className="text-sm font-bold text-zinc-900 line-clamp-1" title={item.id}>
-                            {item.title}
+                    <Card key={item.id} className="border border-zinc-200 shadow-sm hover:shadow-md transition-shadow bg-white">
+                      <CardHeader className="p-3 pb-1 space-y-0.5">
+                        <div className="flex justify-between items-start gap-2">
+                          <CardTitle className="text-sm font-bold text-zinc-900 line-clamp-1" title={item.title}>
+                            {item.id}
                           </CardTitle>
-                          <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0" />
+                           <div className="rounded-full border border-emerald-500 p-0.5 shrink-0">
+                             <CheckCircle className="h-3 w-3 text-emerald-500" />
+                           </div>
                         </div>
-                        <p className="text-xs text-zinc-500 line-clamp-2 h-8">{item.summary}</p>
+                        <p className="text-xs text-zinc-500 line-clamp-1">{item.summary}</p>
                       </CardHeader>
-                      <CardContent className="p-4 pt-2">
+                      <CardContent className="p-3 pt-1">
                         <div className="text-xs text-zinc-400 font-medium">
                           {item.domain}
                         </div>
@@ -178,17 +237,17 @@ export default function LearnPage() {
                     </Card>
                   ))}
                 </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         </div>
 
         {/* Search and Filters */}
         <div className="mb-8 space-y-4">
           <div className="flex flex-col lg:flex-row gap-4 items-end justify-between">
-            <div className="flex flex-wrap gap-4 flex-1 w-full lg:w-auto">
+            <div className="flex flex-wrap gap-2 flex-1 w-full lg:w-auto">
                {/* Domain Filter */}
-               <div className="space-y-1.5 min-w-[180px] flex-1 md:flex-none">
+               <div className="min-w-[140px] md:min-w-[160px] flex-1 md:flex-none space-y-1.5">
                 <Label className="text-xs font-medium text-zinc-500">분류</Label>
                 <Select
                   value={domainFilter}
@@ -197,11 +256,11 @@ export default function LearnPage() {
                     setCurrentPage(1)
                   }}
                 >
-                  <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 h-10">
-                    <SelectValue placeholder="분류별로 학습하기" />
+                  <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 h-10 w-full">
+                    <SelectValue placeholder="분류" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">전체 분류</SelectItem>
+                    <SelectItem value="all">전체</SelectItem>
                     {domainOptions.map((domain) => (
                       <SelectItem key={domain} value={domain}>
                         {domain}
@@ -212,7 +271,7 @@ export default function LearnPage() {
               </div>
 
               {/* Year Filter */}
-              <div className="space-y-1.5 min-w-[140px] flex-1 md:flex-none">
+              <div className="min-w-[100px] md:min-w-[120px] flex-1 md:flex-none space-y-1.5">
                 <Label className="text-xs font-medium text-zinc-500">년도</Label>
                 <Select
                   value={yearFilter}
@@ -221,11 +280,11 @@ export default function LearnPage() {
                     setCurrentPage(1)
                   }}
                 >
-                  <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 h-10">
-                    <SelectValue placeholder="년도 선택" />
+                  <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 h-10 w-full">
+                    <SelectValue placeholder="년도" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">전체 년도</SelectItem>
+                    <SelectItem value="all">전체</SelectItem>
                     {years.map((year) => (
                       <SelectItem key={year} value={year}>
                         {year}
@@ -236,8 +295,8 @@ export default function LearnPage() {
               </div>
 
               {/* Severity Filter */}
-              <div className="space-y-1.5 min-w-[140px] flex-1 md:flex-none">
-                <Label className="text-xs font-medium text-zinc-500">난이도/중요도</Label>
+              <div className="min-w-[100px] md:min-w-[120px] flex-1 md:flex-none space-y-1.5">
+                <Label className="text-xs font-medium text-zinc-500">중요도</Label>
                 <Select
                   value={severityFilter}
                   onValueChange={(value) => {
@@ -245,11 +304,11 @@ export default function LearnPage() {
                     setCurrentPage(1)
                   }}
                 >
-                  <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 h-10">
-                    <SelectValue placeholder="난이도 선택" />
+                  <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 h-10 w-full">
+                    <SelectValue placeholder="중요도" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">전체 난이도</SelectItem>
+                    <SelectItem value="all">전체</SelectItem>
                     {severities.map((severity) => (
                       <SelectItem key={severity} value={severity}>
                         {severity}
@@ -260,14 +319,14 @@ export default function LearnPage() {
               </div>
             </div>
 
-            <div className="w-full lg:w-[400px]">
-              <Label className="text-xs font-medium text-zinc-500 mb-1.5 block">검색</Label>
+            <div className="w-full lg:w-[300px] space-y-1.5">
+              <Label className="text-xs font-medium text-zinc-500">검색</Label>
               <SearchBar
                 onSearch={(q) => {
                   setSearchQuery(q)
                   setCurrentPage(1)
                 }}
-                placeholder="도전 챌린지를 도구로 상세를 찾아보세요."
+                placeholder="CVE 검색"
               />
             </div>
           </div>
