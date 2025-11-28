@@ -1,99 +1,168 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import Image from "next/image"
 import { CVECard } from "@/components/cve-card"
-import { mockCVEs, mockLabHistory } from "@/lib/mock-data"
+import type { CVEItem } from "@/lib/mock-data"
 import { SearchBar } from "@/components/search-bar"
 import { Pagination } from "@/components/pagination"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
 import { CheckCircle, ChevronDown, ChevronUp } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { useAuth } from "@/lib/auth-context"
+import { 
+  fetchCveList, 
+  fetchCveProgress, 
+  fetchCveCategories,
+  getCompletedLabs,
+  type CveBackendResponse 
+} from "@/lib/api"
 
 const ITEMS_PER_PAGE = 9
 
+// 백엔드 응답을 프론트엔드 CVEItem으로 변환
+function convertBackendCveToFrontend(backendCve: CveBackendResponse): CVEItem {
+  return {
+    id: backendCve.name,
+    title: backendCve.outline,
+    cvssScore: backendCve.cvssScore,
+    severity: backendCve.severity,
+    summary: backendCve.outline,
+    tags: [], // 더 이상 사용하지 않음
+    publishedDate: `${backendCve.year}-01-01`,
+    os: backendCve.labOs as any,
+    domain: backendCve.relatedDomain as any,
+  };
+}
+
 export default function LearnPage() {
+  const { isAuthed } = useAuth()
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [isCompletedOpen, setIsCompletedOpen] = useState(true)
 
   const [yearFilter, setYearFilter] = useState<string>("all")
-  const [severityFilter, setSeverityFilter] = useState<string>("all")
+  const [osFilter, setOsFilter] = useState<string>("all")
   const [domainFilter, setDomainFilter] = useState<string>("all")
 
+  // API 데이터 상태
+  const [cveList, setCveList] = useState<CVEItem[]>([])
+  const [progressData, setProgressData] = useState<{ completedCount?: number; totalCount: number } | null>(null)
+  const [categoryStats, setCategoryStats] = useState<{ total: number; critical: number; high: number; medium: number } | null>(null)
+  const [completedLabs, setCompletedLabs] = useState<Set<string>>(new Set())
+  const [isLoading, setIsLoading] = useState(true)
+
   const years = ["2024", "2023", "2022", "2021", "2020", "2019"]
-  const severities = ["Critical", "High", "Medium", "Low"]
-  const domainOptions = [
-    "Network",
-    "Web Application",
-    "Database",
-    "OS/Kernel",
-    "Application",
-    "Cloud",
-    "Container",
-    "Authentication",
-    "Cryptography",
-    "IoT/Device",
-  ]
+  const osOptions = ["Ubuntu", "Linux", "LINUX", "Windows", "CentOS", "Debian", "Alpine", "Android"]
+  const domainOptions = ["WEB", "NETWORK", "Application", "SYSTEM"]
 
-  // Stats Calculation
+  // 진행 상황 및 통계 데이터 로드
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setIsLoading(true)
+        const token = localStorage.getItem("access_token")
+        
+        // 진행 상황 로드 (토큰 있으면 completedCount 포함)
+        const progress = await fetchCveProgress(token)
+        setProgressData(progress)
+        
+        // 카테고리 통계 로드
+        const categories = await fetchCveCategories()
+        setCategoryStats(categories)
+        
+        // 완료된 Lab 목록 로드 (로그인 시에만)
+        if (isAuthed && token) {
+          try {
+            const completed = await getCompletedLabs()
+            setCompletedLabs(new Set(completed.map(lab => lab.cveName)))
+          } catch (error) {
+            console.error("Failed to load completed labs:", error)
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load stats:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    loadData()
+  }, [isAuthed])
+
+  // CVE 목록 로드 (필터 변경 시)
+  useEffect(() => {
+    async function loadCveList() {
+      try {
+        const domain = domainFilter !== "all" ? domainFilter : undefined
+        const year = yearFilter !== "all" ? parseInt(yearFilter) : undefined
+        const os = osFilter !== "all" ? osFilter : undefined
+        
+        const backendCves = await fetchCveList(domain, year, os)
+        const frontendCves = backendCves.map(convertBackendCveToFrontend)
+        setCveList(frontendCves)
+      } catch (error) {
+        console.error("Failed to load CVE list:", error)
+        setCveList([])
+      }
+    }
+    
+    loadCveList()
+  }, [domainFilter, yearFilter, osFilter])
+
+  // Stats 계산
   const stats = useMemo(() => {
-    const total = mockCVEs.length
-    const completed = mockLabHistory.length
-    const easy = mockCVEs.filter(c => c.severity === "Low").length
-    const medium = mockCVEs.filter(c => c.severity === "Medium").length
-    const hard = mockCVEs.filter(c => c.severity === "High" || c.severity === "Critical").length
+    if (!progressData || !categoryStats) {
+      return { total: 0, completed: 0, critical: 0, high: 0, medium: 0 }
+    }
+    
+    return {
+      total: progressData.totalCount,
+      completed: progressData.completedCount ?? 0,
+      critical: categoryStats.critical,
+      high: categoryStats.high,
+      medium: categoryStats.medium
+    }
+  }, [progressData, categoryStats])
 
-    return { total, completed, easy, medium, hard }
-  }, [])
-
-  const completedCVEIds = useMemo(() => {
-    // mockLabHistory가 완료된 목록이므로 해당 ID들을 Set으로 관리
-    // 데모를 위해 mockCVEs의 마지막 항목도 완료된 것으로 가정 (시각적 확인용)
-    return new Set([
-      ...mockLabHistory.map(h => h.id),
-      mockCVEs[mockCVEs.length - 1].id, // 데모용
-      mockCVEs[3].id // 데모용
-    ])
-  }, [])
-
+  // 클라이언트 사이드 필터링 (검색만)
   const filteredCVEs = useMemo(() => {
-    return mockCVEs.filter((cve) => {
+    return cveList.filter((cve) => {
       const matchesSearch =
         cve.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
         cve.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
         cve.os.toLowerCase().includes(searchQuery.toLowerCase()) ||
         cve.domain.toLowerCase().includes(searchQuery.toLowerCase())
 
-      const matchesYear = yearFilter === "all" || cve.id.includes(yearFilter)
-      const matchesSeverity = severityFilter === "all" || cve.severity === severityFilter
-      const matchesDomain = domainFilter === "all" || cve.domain === domainFilter
-
-      return matchesSearch && matchesYear && matchesSeverity && matchesDomain
+      return matchesSearch
     })
-  }, [searchQuery, yearFilter, severityFilter, domainFilter])
+  }, [cveList, searchQuery])
 
   const totalPages = Math.ceil(filteredCVEs.length / ITEMS_PER_PAGE)
   const paginatedCVEs = filteredCVEs.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
 
-  // "완료된 학습"용 데이터 (완료된 항목들 예시)
+  // "완료된 학습"용 데이터
   const continueLearningItems = useMemo(() => {
-    // 실제로는 완료된 항목이나 진행중인 항목을 가져와야 함
-    // 여기서는 mockLabHistory에 있는 항목들을 사용하고, 부족하면 mockCVEs에서 몇 개 가져와서 보여줌
-    const items = [...mockCVEs].filter(cve => completedCVEIds.has(cve.id));
-    return items.length > 0 ? items : mockCVEs.slice(0, 4);
-  }, [completedCVEIds])
+    return cveList.filter(cve => completedLabs.has(cve.id))
+  }, [cveList, completedLabs])
 
   // Circle Chart Calc
-  const radius = 45 // 반지름 키움
+  const radius = 45
   const circumference = 2 * Math.PI * radius
-  const percentage = (stats.completed / stats.total) * 100
+  const percentage = stats.total > 0 ? (stats.completed / stats.total) * 100 : 0
   const strokeDashoffset = circumference - (percentage / 100) * circumference
 
+  // 로딩 중이면 로딩 표시
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
+        <div className="text-zinc-600">로딩 중...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -143,7 +212,9 @@ export default function LearnPage() {
                   {/* Stats Text */}
                   <div className="flex flex-col justify-center">
                      <div className="flex items-baseline gap-1.5 mb-1">
-                        <span className="text-5xl font-bold text-white">{stats.completed}</span>
+                        <span className="text-5xl font-bold text-white">
+                          {progressData?.completedCount !== undefined ? progressData.completedCount : '-'}
+                        </span>
                         <span className="text-xl text-zinc-400 font-light">/{stats.total}</span>
                      </div>
                      <div className="text-sm text-zinc-300 font-medium">완료된 Challenges</div>
@@ -156,16 +227,16 @@ export default function LearnPage() {
                 {/* Difficulty Stats */}
                 <div className="flex gap-10">
                     <div>
-                      <div className="text-3xl font-bold text-white">{stats.easy}</div>
-                      <div className="text-sm text-zinc-400 mt-1 leading-tight">Easy<br/>Challenges</div>
+                      <div className="text-3xl font-bold text-white">{stats.critical}</div>
+                      <div className="text-sm text-zinc-400 mt-1 leading-tight">Critical<br/>Challenges</div>
+                    </div>
+                    <div>
+                      <div className="text-3xl font-bold text-white">{stats.high}</div>
+                      <div className="text-sm text-zinc-400 mt-1 leading-tight">High<br/>Challenges</div>
                     </div>
                     <div>
                       <div className="text-3xl font-bold text-white">{stats.medium}</div>
                       <div className="text-sm text-zinc-400 mt-1 leading-tight">Medium<br/>Challenges</div>
-                    </div>
-                    <div>
-                      <div className="text-3xl font-bold text-white">{stats.hard}</div>
-                      <div className="text-sm text-zinc-400 mt-1 leading-tight">Hard<br/>Challenges</div>
                     </div>
                 </div>
               </div>
@@ -244,35 +315,12 @@ export default function LearnPage() {
 
         {/* Search and Filters */}
         <div className="mb-8 space-y-4">
-          <div className="flex flex-col lg:flex-row gap-4 items-end justify-between">
-            <div className="flex flex-wrap gap-2 flex-1 w-full lg:w-auto">
-               {/* Domain Filter */}
-               <div className="min-w-[140px] md:min-w-[160px] flex-1 md:flex-none space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-500">분류</Label>
-                <Select
-                  value={domainFilter}
-                  onValueChange={(value) => {
-                    setDomainFilter(value)
-                    setCurrentPage(1)
-                  }}
-                >
-                  <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 h-10 w-full">
-                    <SelectValue placeholder="분류" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">전체</SelectItem>
-                    {domainOptions.map((domain) => (
-                      <SelectItem key={domain} value={domain}>
-                        {domain}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Year Filter */}
-              <div className="min-w-[100px] md:min-w-[120px] flex-1 md:flex-none space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-500">년도</Label>
+          <div className="flex flex-col lg:flex-row gap-4 items-end">
+            {/* Filters - CVE 그리드 첫 번째 열 너비와 맞춤 */}
+            <div className="flex gap-2 w-full sm:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-3rem)/3)]">
+               {/* Year Filter */}
+               <div className="flex-1 space-y-1.5">
+                <Label className="text-xs font-medium text-zinc-500">공개 연도</Label>
                 <Select
                   value={yearFilter}
                   onValueChange={(value) => {
@@ -281,7 +329,7 @@ export default function LearnPage() {
                   }}
                 >
                   <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 h-10 w-full">
-                    <SelectValue placeholder="년도" />
+                    <SelectValue placeholder="전체" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">전체</SelectItem>
@@ -294,24 +342,48 @@ export default function LearnPage() {
                 </Select>
               </div>
 
-              {/* Severity Filter */}
-              <div className="min-w-[100px] md:min-w-[120px] flex-1 md:flex-none space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-500">중요도</Label>
+              {/* Domain Filter */}
+              <div className="flex-1 space-y-1.5">
+                <Label className="text-xs font-medium text-zinc-500">관련 분야</Label>
                 <Select
-                  value={severityFilter}
+                  value={domainFilter}
                   onValueChange={(value) => {
-                    setSeverityFilter(value)
+                    setDomainFilter(value)
                     setCurrentPage(1)
                   }}
                 >
                   <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 h-10 w-full">
-                    <SelectValue placeholder="중요도" />
+                    <SelectValue placeholder="전체" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">전체</SelectItem>
-                    {severities.map((severity) => (
-                      <SelectItem key={severity} value={severity}>
-                        {severity}
+                    {domainOptions.map((domain) => (
+                      <SelectItem key={domain} value={domain}>
+                        {domain}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* OS Filter */}
+              <div className="flex-1 space-y-1.5">
+                <Label className="text-xs font-medium text-zinc-500">실습 환경</Label>
+                <Select
+                  value={osFilter}
+                  onValueChange={(value) => {
+                    setOsFilter(value)
+                    setCurrentPage(1)
+                  }}
+                >
+                  <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 h-10 w-full">
+                    <SelectValue placeholder="전체" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">전체</SelectItem>
+                    {osOptions.map((os) => (
+                      <SelectItem key={os} value={os}>
+                        {os}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -319,7 +391,8 @@ export default function LearnPage() {
               </div>
             </div>
 
-            <div className="w-full lg:w-[300px] space-y-1.5">
+            {/* Search Bar - CVE 그리드 세 번째 열 너비와 맞춤 */}
+            <div className="w-full sm:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-3rem)/3)] lg:ml-auto space-y-1.5">
               <Label className="text-xs font-medium text-zinc-500">검색</Label>
               <SearchBar
                 onSearch={(q) => {
@@ -343,7 +416,7 @@ export default function LearnPage() {
               <CVECard 
                 key={cve.id} 
                 cve={cve} 
-                isCompleted={completedCVEIds.has(cve.id)}
+                isCompleted={completedLabs.has(cve.id)}
               />
             ))
           )}

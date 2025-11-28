@@ -348,6 +348,107 @@ export async function cancelLabSession(
 }
 
 // ====================================
+// CVE Learning API
+// ====================================
+
+// 백엔드 CVE 응답 타입
+export interface CveBackendResponse {
+  name: string;              // "CVE-2025-1302"
+  cvssScore: number;         // 9.8
+  severity: 'Critical' | 'High' | 'Medium';
+  relatedDomain: string;     // "WEB", "NETWORK", "Application", "SYSTEM"
+  year: number;              // 2025
+  labOs: string;             // "LINUX", "WINDOWS", "Ubuntu"
+  outline: string;           // 설명
+}
+
+// CVE 카테고리 통계 응답
+export interface CveCategoryStatsResponse {
+  total: number;
+  critical: number;
+  high: number;
+  medium: number;
+}
+
+// CVE 진행 상황 응답
+export interface CveProgressResponse {
+  completedCount?: number;   // 로그인 시에만 존재
+  totalCount: number;        // 항상 존재
+}
+
+// CVE 개수 응답
+export interface CveCountResponse {
+  count: number;
+}
+
+/**
+ * CVE 목록 조회 (필터링 지원)
+ * @param domain 관련 도메인 필터 (WEB, NETWORK, Application, SYSTEM)
+ * @param year 연도 필터
+ * @param os Lab OS 필터 (LINUX, WINDOWS, Ubuntu)
+ */
+export async function fetchCveList(
+  domain?: string,
+  year?: number,
+  os?: string
+): Promise<CveBackendResponse[]> {
+  const params = new URLSearchParams();
+  if (domain) params.append('domain', domain);
+  if (year) params.append('year', year.toString());
+  if (os) params.append('os', os);
+
+  const url = `/api/v1/cve${params.toString() ? '?' + params.toString() : ''}`;
+  const response = await api.get<CveBackendResponse[]>(url);
+  return response.data;
+}
+
+/**
+ * 전체 CVE 개수 조회
+ */
+export async function fetchCveCount(): Promise<CveCountResponse> {
+  const response = await api.get<CveCountResponse>('/api/v1/cve/stats/count');
+  return response.data;
+}
+
+/**
+ * CVE 카테고리별 통계 조회
+ */
+export async function fetchCveCategories(): Promise<CveCategoryStatsResponse> {
+  const response = await api.get<CveCategoryStatsResponse>('/api/v1/cve/stats/categories');
+  return response.data;
+}
+
+/**
+ * Challenge 통계 조회 (categories와 동일한 데이터)
+ */
+export async function fetchCveChallenges(): Promise<CveCategoryStatsResponse> {
+  const response = await api.get<CveCategoryStatsResponse>('/api/v1/cve/stats/challenges');
+  return response.data;
+}
+
+/**
+ * 사용자 CVE 진행 상황 조회
+ * @param token JWT 토큰 (선택적 - 있으면 completedCount 포함)
+ */
+export async function fetchCveProgress(token?: string | null): Promise<CveProgressResponse> {
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  const response = await fetch(`${getApiBaseUrl()}/api/v1/cve/stats/progress`, { 
+    headers,
+    cache: 'no-store'
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch progress: ${response.status}`);
+  }
+  
+  return response.json();
+}
+
+// ====================================
 // MyPage Profile API
 // ====================================
 export interface UserProfileResponse {
