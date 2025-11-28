@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { CVECard } from "@/components/cve-card"
 import type { CVEItem } from "@/lib/mock-data"
@@ -18,7 +19,8 @@ import {
   fetchCveProgress, 
   fetchCveCategories,
   getCompletedLabs,
-  type CveBackendResponse 
+  type CveBackendResponse,
+  type CompletedLabItem
 } from "@/lib/api"
 
 const ITEMS_PER_PAGE = 9
@@ -39,6 +41,7 @@ function convertBackendCveToFrontend(backendCve: CveBackendResponse): CVEItem {
 }
 
 export default function LearnPage() {
+  const router = useRouter()
   const { isAuthed } = useAuth()
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
@@ -53,6 +56,7 @@ export default function LearnPage() {
   const [progressData, setProgressData] = useState<{ completedCount?: number; totalCount: number } | null>(null)
   const [categoryStats, setCategoryStats] = useState<{ total: number; critical: number; high: number; medium: number } | null>(null)
   const [completedLabs, setCompletedLabs] = useState<Set<string>>(new Set())
+  const [completedLabsData, setCompletedLabsData] = useState<CompletedLabItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   const years = ["2024", "2023", "2022", "2021", "2020", "2019"]
@@ -78,6 +82,7 @@ export default function LearnPage() {
         if (isAuthed && token) {
           try {
             const completed = await getCompletedLabs()
+            setCompletedLabsData(completed)
             setCompletedLabs(new Set(completed.map(lab => lab.cveName)))
           } catch (error) {
             console.error("Failed to load completed labs:", error)
@@ -143,11 +148,6 @@ export default function LearnPage() {
 
   const totalPages = Math.ceil(filteredCVEs.length / ITEMS_PER_PAGE)
   const paginatedCVEs = filteredCVEs.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
-
-  // "완료된 학습"용 데이터
-  const continueLearningItems = useMemo(() => {
-    return cveList.filter(cve => completedLabs.has(cve.id))
-  }, [cveList, completedLabs])
 
   // Circle Chart Calc
   const radius = 45
@@ -228,15 +228,15 @@ export default function LearnPage() {
                 <div className="flex gap-10">
                     <div>
                       <div className="text-3xl font-bold text-white">{stats.critical}</div>
-                      <div className="text-sm text-zinc-400 mt-1 leading-tight">Critical<br/>Challenges</div>
+                      <div className="text-sm text-zinc-400 mt-1 leading-tight">Critical<br/>CVSS</div>
                     </div>
                     <div>
                       <div className="text-3xl font-bold text-white">{stats.high}</div>
-                      <div className="text-sm text-zinc-400 mt-1 leading-tight">High<br/>Challenges</div>
+                      <div className="text-sm text-zinc-400 mt-1 leading-tight">High<br/>CVSS</div>
                     </div>
                     <div>
                       <div className="text-3xl font-bold text-white">{stats.medium}</div>
-                      <div className="text-sm text-zinc-400 mt-1 leading-tight">Medium<br/>Challenges</div>
+                      <div className="text-sm text-zinc-400 mt-1 leading-tight">Medium<br/>CVSS</div>
                     </div>
                 </div>
               </div>
@@ -287,22 +287,35 @@ export default function LearnPage() {
             <CollapsibleContent>
               <div className="px-6 pb-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {continueLearningItems.map((item) => (
-                    <Card key={item.id} className="border border-zinc-200 shadow-sm hover:shadow-md transition-shadow bg-white">
-                      <CardHeader className="p-3 pb-1 space-y-0.5">
+                  {completedLabsData.map((item) => (
+                    <Card 
+                      key={item.cveName} 
+                      className="border border-zinc-200 shadow-sm hover:shadow-md transition-all duration-200 bg-white cursor-pointer hover:border-emerald-500 group"
+                      onClick={() => router.push(`/learn/${item.cveName}`)}
+                    >
+                      <CardHeader className="p-2.5 pb-1 space-y-0">
                         <div className="flex justify-between items-start gap-2">
-                          <CardTitle className="text-sm font-bold text-zinc-900 line-clamp-1" title={item.title}>
-                            {item.id}
+                          <CardTitle className="text-sm font-bold text-zinc-900 line-clamp-1 group-hover:text-emerald-600 transition-colors" title={item.outline}>
+                            {item.cveName}
                           </CardTitle>
                            <div className="rounded-full border border-emerald-500 p-0.5 shrink-0">
                              <CheckCircle className="h-3 w-3 text-emerald-500" />
                            </div>
                         </div>
-                        <p className="text-xs text-zinc-500 line-clamp-1">{item.summary}</p>
+                        <p className="text-xs text-zinc-500 line-clamp-1">{item.outline}</p>
                       </CardHeader>
-                      <CardContent className="p-3 pt-1">
-                        <div className="text-xs text-zinc-400 font-medium">
-                          {item.domain}
+                      <CardContent className="p-2.5 pt-1.5">
+                        <div className="flex flex-wrap gap-1.5">
+                          {item.relatedDomain && (
+                            <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-600 ring-1 ring-inset ring-blue-700/10">
+                              {item.relatedDomain}
+                            </span>
+                          )}
+                          {item.labOs && (
+                            <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-600 ring-1 ring-inset ring-blue-700/10">
+                              {item.labOs}
+                            </span>
+                          )}
                         </div>
                       </CardContent>
                     </Card>

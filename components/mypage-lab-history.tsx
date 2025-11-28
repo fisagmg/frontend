@@ -46,40 +46,40 @@ export function MypageLabHistory() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2">실습한 CVE</h2>
-        <p className="text-muted-foreground">완료한 실습 목록입니다</p>
+        <h2 className="text-2xl font-bold mb-2 text-zinc-900">실습한 CVE</h2>
+        <p className="text-zinc-500">완료한 실습 목록입니다</p>
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">로드 중...</p>
+        <p className="text-sm text-zinc-500">로드 중...</p>
       ) : paginatedHistory.length === 0 ? (
-        <p className="text-sm text-muted-foreground">완료된 실습이 없습니다.</p>
+        <p className="text-sm text-zinc-500">완료된 실습이 없습니다.</p>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2">
           {paginatedHistory.map((item) => (
             <Link key={`${item.cveId}-${item.completedAt}`} href={`/lab/${item.cveName}/start`} className="block">
-              <Card className="hover:border-primary/50 transition-colors">
+              <Card className="hover:border-blue-500 transition-colors bg-white border-zinc-200 shadow-sm group">
                 <CardHeader>
                   <div className="flex items-start justify-between">
-                    <CardTitle className="text-lg">{item.cveName}</CardTitle>
+                    <CardTitle className="text-lg text-zinc-900 group-hover:text-blue-600 transition-colors">{item.cveName}</CardTitle>
                     <SeverityBadge score={item.cvssScore} level={item.cvssScore >= 9 ? "Critical" : item.cvssScore >= 7 ? "High" : item.cvssScore >= 4 ? "Medium" : "Low"} />
                   </div>
-                  <CardDescription>{item.outline}</CardDescription>
+                  <CardDescription className="text-zinc-500 line-clamp-2">{item.outline}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2 mb-3">
                     {item.labOs && (
-                      <Badge variant="outline" className="text-xs">
-                        OS: {item.labOs}
+                      <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 hover:bg-blue-100">
+                        {item.labOs}
                       </Badge>
                     )}
                     {item.relatedDomain && (
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 hover:bg-blue-100">
                         {item.relatedDomain}
                       </Badge>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground">완료일: {new Date(item.completedAt).toLocaleDateString()}</p>
+                  <p className="text-xs text-zinc-400">완료일: {new Date(item.completedAt).toLocaleDateString()}</p>
                 </CardContent>
               </Card>
             </Link>

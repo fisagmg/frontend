@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useMemo } from "react"
 import Link from "next/link"
-import { fetchTopNews, type NewsResponse } from "@/lib/api"
+import Image from "next/image"
+import { fetchTopNews } from "@/lib/api"
 
 interface HighlightItem {
   id: number
@@ -45,71 +46,78 @@ export function NewsHighlights() {
     load()
   }, [])
 
-  const visibleItems = useMemo(() => items.slice(0, 4), [items])
-
-  const handleNewsClick = (url: string) => {
-    window.open(url, "_blank")
-  }
+  const visibleItems = useMemo(() => items.slice(0, 6), [items])
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">주요 보안 뉴스</h2>
-        <Link href="/news" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-          전체보기 →
+    <section className="w-full py-12">
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-2xl font-bold text-white tracking-tight">주요 보안 뉴스</h2>
+        <Link href="/news" className="text-sm text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1 font-medium">
+          전체보기 <span aria-hidden="true">→</span>
         </Link>
       </div>
 
       {isLoading ? (
-        <div className="space-y-2">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="w-full flex gap-4 items-start px-4 py-3 rounded-lg bg-muted/40 animate-pulse">
-              <div className="flex-shrink-0 w-24 h-16 rounded bg-muted" />
-              <div className="flex-1 space-y-2">
-                <div className="h-4 bg-muted rounded" />
-                <div className="h-3 bg-muted/80 rounded w-3/4" />
-                <div className="h-3 bg-muted/60 rounded w-1/3" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="flex gap-4 p-4 rounded-xl bg-[#1e2736] animate-pulse h-32">
+              <div className="w-32 h-full rounded-lg bg-slate-700/50 shrink-0" />
+              <div className="flex-1 space-y-2 py-1">
+                <div className="h-4 bg-slate-700/50 rounded w-3/4" />
+                <div className="h-3 bg-slate-700/50 rounded w-full" />
+                <div className="h-3 bg-slate-700/50 rounded w-1/2" />
               </div>
             </div>
           ))}
         </div>
       ) : error ? (
-        <p className="text-sm text-destructive">{error}</p>
+        <p className="text-sm text-red-400">{error}</p>
       ) : visibleItems.length === 0 ? (
-        <p className="text-sm text-muted-foreground">표시할 최신 뉴스가 없습니다.</p>
+        <p className="text-sm text-zinc-400">표시할 최신 뉴스가 없습니다.</p>
       ) : (
-        <div className="space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {visibleItems.map((item) => (
-            <button
+            <a
               key={item.id}
-              onClick={() => handleNewsClick(item.externalUrl)}
-              className="w-full flex gap-4 items-start px-4 py-3 rounded-lg bg-card border border-border hover:bg-muted transition-colors text-left"
-              aria-label={`${item.title} - 외부 링크로 이동`}
+              href={item.externalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex overflow-hidden rounded-xl bg-[#1e2736] border border-white/5 hover:border-white/10 transition-all hover:-translate-y-0.5 h-32"
             >
-              <div className="flex-shrink-0 w-24 h-16 rounded bg-muted overflow-hidden">
+              {/* Thumbnail Left */}
+              <div className="relative w-36 shrink-0 bg-slate-800">
                 {item.thumbnail ? (
-                  <img
+                  <Image
                     src={item.thumbnail}
                     alt=""
-                    className="w-full h-full object-cover"
-                    onError={(event) => {
-                      event.currentTarget.onerror = null
-                      event.currentTarget.src = "/news-placeholder.svg"
-                    }}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    unoptimized
                   />
                 ) : (
-                  <img src="/news-placeholder.svg" alt="" className="w-full h-full object-cover" />
+                  <div className="flex items-center justify-center h-full text-zinc-600">
+                    <span className="text-xs">No Image</span>
+                  </div>
                 )}
               </div>
 
-              <div className="flex-1 min-w-0 space-y-1">
-                <h3 className="font-semibold text-foreground line-clamp-2 leading-snug">{item.title}</h3>
-                <p className="text-sm text-muted-foreground line-clamp-1">{item.snippet}</p>
-                <div className="text-xs text-muted-foreground/80">
-                  {item.publisher} · {item.createdAtLabel}
+              {/* Content Right */}
+              <div className="flex-1 flex flex-col p-4 min-w-0">
+                <div className="flex items-center gap-2 mb-1.5 text-[10px] text-zinc-400">
+                   <span className="text-blue-400 font-semibold truncate max-w-[80px]">{item.publisher}</span>
+                   <span>·</span>
+                   <span>{item.createdAtLabel}</span>
                 </div>
+                
+                <h3 className="text-sm font-bold text-white leading-tight mb-1.5 line-clamp-2 group-hover:text-blue-400 transition-colors">
+                  {item.title}
+                </h3>
+
+                <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">
+                  {item.snippet}
+                </p>
               </div>
-            </button>
+            </a>
           ))}
         </div>
       )}

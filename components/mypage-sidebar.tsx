@@ -42,14 +42,17 @@ export function MypageSidebar({ activeView, onViewChange }: MypageSidebarProps) 
   return (
     <>
       <aside className="w-64 shrink-0">
-        <div className="rounded-lg border border-border bg-card p-4 space-y-2">
+        <div className="rounded-lg border border-zinc-200 bg-white p-4 space-y-2 shadow-sm">
           {menuItems.map((item) => {
             const Icon = item.icon
             return (
               <Button
                 key={item.id}
-                variant={activeView === item.id ? "secondary" : "ghost"}
-                className={cn("w-full justify-start", activeView === item.id && "bg-primary/10 text-primary")}
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900",
+                  activeView === item.id && "bg-blue-50 text-blue-600 font-medium hover:bg-blue-100 hover:text-blue-700"
+                )}
                 onClick={() => onViewChange(item.id)}
               >
                 <Icon className="mr-2 h-4 w-4" />
@@ -59,10 +62,13 @@ export function MypageSidebar({ activeView, onViewChange }: MypageSidebarProps) 
           })}
           {isAdmin && (
             <>
-              <div className="pt-2 border-t border-border" />
+              <div className="pt-2 border-t border-zinc-100" />
               <Button
-                variant={activeView === "admin-console" ? "secondary" : "ghost"}
-                className={cn("w-full justify-start", activeView === "admin-console" && "bg-primary/10 text-primary")}
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900",
+                  activeView === "admin-console" && "bg-blue-50 text-blue-600 font-medium hover:bg-blue-100 hover:text-blue-700"
+                )}
                 onClick={() => onViewChange("admin-console")}
               >
                 <Settings className="mr-2 h-4 w-4" />
@@ -70,10 +76,10 @@ export function MypageSidebar({ activeView, onViewChange }: MypageSidebarProps) 
               </Button>
             </>
           )}
-          <div className="pt-2 border-t border-border">
+          <div className="pt-2 border-t border-zinc-100">
             <Button
               variant="ghost"
-              className="w-full justify-start text-destructive"
+              className="w-full justify-start text-red-500 hover:bg-red-50 hover:text-red-600"
               onClick={() => setShowLogoutDialog(true)}
             >
               <LogOut className="mr-2 h-4 w-4" />
