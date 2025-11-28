@@ -172,7 +172,7 @@ export default function LearnPage() {
           <div className="flex flex-col lg:flex-row justify-between items-center gap-8">
             {/* Left Side: Stats */}
             <div className="flex flex-col space-y-6 w-full lg:w-auto">
-              <h1 className="text-3xl font-bold text-white tracking-tight">Challenges</h1>
+              <h1 className="text-3xl font-bold text-white tracking-tight">PoC</h1>
               
               <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
                 {/* Circular Progress Section */}
@@ -217,7 +217,7 @@ export default function LearnPage() {
                         </span>
                         <span className="text-xl text-zinc-400 font-light">/{stats.total}</span>
                      </div>
-                     <div className="text-sm text-zinc-300 font-medium">완료된 Challenges</div>
+                     <div className="text-sm text-zinc-300 font-medium">완료된 학습</div>
                   </div>
                 </div>
 
@@ -228,15 +228,15 @@ export default function LearnPage() {
                 <div className="flex gap-10">
                     <div>
                       <div className="text-3xl font-bold text-white">{stats.critical}</div>
-                      <div className="text-sm text-zinc-400 mt-1 leading-tight">Critical<br/>CVSS</div>
+                      <div className="text-sm text-zinc-400 mt-1 leading-tight">Critical<br/></div>
                     </div>
                     <div>
                       <div className="text-3xl font-bold text-white">{stats.high}</div>
-                      <div className="text-sm text-zinc-400 mt-1 leading-tight">High<br/>CVSS</div>
+                      <div className="text-sm text-zinc-400 mt-1 leading-tight">High<br/></div>
                     </div>
                     <div>
                       <div className="text-3xl font-bold text-white">{stats.medium}</div>
-                      <div className="text-sm text-zinc-400 mt-1 leading-tight">Medium<br/>CVSS</div>
+                      <div className="text-sm text-zinc-400 mt-1 leading-tight">Medium<br/></div>
                     </div>
                 </div>
               </div>
@@ -341,7 +341,7 @@ export default function LearnPage() {
                     setCurrentPage(1)
                   }}
                 >
-                  <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 h-10 w-full">
+                  <SelectTrigger className="!bg-white !border-zinc-200 !text-zinc-900 h-10 w-full">
                     <SelectValue placeholder="전체" />
                   </SelectTrigger>
                   <SelectContent>
@@ -365,7 +365,7 @@ export default function LearnPage() {
                     setCurrentPage(1)
                   }}
                 >
-                  <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 h-10 w-full">
+                  <SelectTrigger className="!bg-white !border-zinc-200 !text-zinc-900 h-10 w-full">
                     <SelectValue placeholder="전체" />
                   </SelectTrigger>
                   <SelectContent>
@@ -389,7 +389,7 @@ export default function LearnPage() {
                     setCurrentPage(1)
                   }}
                 >
-                  <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 h-10 w-full">
+                  <SelectTrigger className="!bg-white !border-zinc-200 !text-zinc-900 h-10 w-full">
                     <SelectValue placeholder="전체" />
                   </SelectTrigger>
                   <SelectContent>
@@ -406,7 +406,7 @@ export default function LearnPage() {
 
             {/* Search Bar - CVE 그리드 세 번째 열 너비와 맞춤 */}
             <div className="w-full sm:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-3rem)/3)] lg:ml-auto space-y-1.5">
-              <Label className="text-xs font-medium text-zinc-500">검색</Label>
+              <Label className="text-xs font-medium !text-zinc-500">검색</Label>
               <SearchBar
                 onSearch={(q) => {
                   setSearchQuery(q)

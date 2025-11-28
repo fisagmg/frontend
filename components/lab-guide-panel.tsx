@@ -38,8 +38,8 @@ export function LabGuidePanel({ cveId, metadata }: LabGuidePanelProps) {
   // 코드 블록 컴포넌트
   const CodeBlock = ({ code, id }: { code: string; id: string }) => (
     <div className="relative group">
-      <pre className="bg-slate-100 p-3 rounded text-xs text-black overflow-x-auto border border-slate-200">
-        <code>{code}</code>
+      <pre className="bg-transparent p-3 text-xs text-black overflow-x-auto">
+        <code className="text-black">{code}</code>
       </pre>
       <Button
         size="sm"
@@ -62,7 +62,7 @@ export function LabGuidePanel({ cveId, metadata }: LabGuidePanelProps) {
     pre: ({ children, ...props }: any) => (
       <pre
         {...props}
-        className="bg-slate-100 p-3 rounded text-xs text-black overflow-x-auto border border-slate-200 my-3"
+        className="bg-transparent p-3 text-xs text-black overflow-x-auto my-3"
       >
         {children}
       </pre>

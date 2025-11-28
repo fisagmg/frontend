@@ -251,7 +251,7 @@ export default function SignupPage() {
                     </p> */}
                   </div>
                   <div className="flex gap-2 justify-end">
-                    <Button onClick={handleResend} variant="outline" size="sm" disabled={isLoading} className="border-zinc-300 text-zinc-700 hover:bg-zinc-100">
+                    <Button onClick={handleResend} size="sm" disabled={isLoading} className="border-zinc-300 text-zinc-700 hover:bg-zinc-100">
                       재전송
                     </Button>
                     <Button onClick={handleVerifyCode} size="sm" disabled={isLoading || code.length !== 6} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold">
@@ -282,17 +282,17 @@ export default function SignupPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   className="
-                  !bg-white
-                  !text-zinc-900
-                  !border border-zinc-300
+                            !bg-white
+                            !text-zinc-900
+                            !border border-zinc-300
 
-                  !focus:outline-none
-                  !focus:border-blue-400
+                            !focus:outline-none
+                            !focus:border-blue-400
 
-                  !focus-visible:outline-none
-                  focus-visible:ring-0
-                  !focus-visible:ring-offset-0
-                "
+                            !focus-visible:outline-none
+                            focus-visible:ring-0
+                            !focus-visible:ring-offset-0
+                          "
                 />
               </div>
 
