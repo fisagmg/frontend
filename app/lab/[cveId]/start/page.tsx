@@ -180,7 +180,7 @@ export default function LabStartPage({
 
       console.log('[VM 생성] API 호출 시작:', cveId);
       const response = await createVM(cveId);
-      console.log('[VM 생성] API 호출 성공:', response);
+      //console.log('[VM 생성] API 호출 성공:', response);
 
       setVmId(response.uuid);
       setTerminalUrl(response.guacamoleUrl ?? null);
@@ -428,7 +428,6 @@ export default function LabStartPage({
                 type="button"
                 onClick={(e) => {
                   e.preventDefault();
-                  console.log("&*&*&*&*&*므ㅓㄹ봐")
                   e.stopPropagation();
                   console.log('[VM 생성] 버튼 직접 클릭됨!');
                   setShowCreateVmDialog(true);
