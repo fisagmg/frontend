@@ -96,24 +96,24 @@ export function Header() {
               <DropdownMenuContent side="bottom" align="end" sideOffset={4} className="mt-2 bg-white border-zinc-200">
                 {isAuthed ? (
                   <>
-                    <DropdownMenuItem asChild className="text-zinc-900 hover:bg-zinc-100 focus:bg-zinc-100 cursor-pointer">
-                      <Link href="/mypage" onClick={handleNavClick("/mypage")}>
+                    <DropdownMenuItem asChild className="!text-zinc-900 hover:!bg-blue-50 hover:!text-blue-700 focus:!bg-blue-50 focus:!text-blue-700 cursor-pointer">
+                      <Link href="/mypage" onClick={handleNavClick("/mypage")} className="w-full">
                         마이페이지
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleLogout} className="text-zinc-900 hover:bg-zinc-100 focus:bg-zinc-100 cursor-pointer">
+                    <DropdownMenuItem onClick={handleLogout} className="!text-zinc-900 hover:!bg-blue-50 hover:!text-blue-700 focus:!bg-blue-50 focus:!text-blue-700 cursor-pointer">
                       로그아웃
                     </DropdownMenuItem>
                   </>
                 ) : (
                   <>
-                    <DropdownMenuItem asChild className="text-zinc-900 hover:bg-zinc-100 focus:bg-zinc-100 cursor-pointer">
-                      <Link href="/login" onClick={handleNavClick("/login")}>
+                    <DropdownMenuItem asChild className="!text-zinc-900 hover:!bg-blue-50 hover:!text-blue-700 focus:!bg-blue-50 focus:!text-blue-700 cursor-pointer">
+                      <Link href="/login" onClick={handleNavClick("/login")} className="w-full">
                         로그인
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="text-zinc-900 hover:bg-zinc-100 focus:bg-zinc-100 cursor-pointer">
-                      <Link href="/signup" onClick={handleNavClick("/signup")}>
+                    <DropdownMenuItem asChild className="!text-zinc-900 hover:!bg-blue-50 hover:!text-blue-700 focus:!bg-blue-50 focus:!text-blue-700 cursor-pointer">
+                      <Link href="/signup" onClick={handleNavClick("/signup")} className="w-full">
                         회원가입
                       </Link>
                     </DropdownMenuItem>

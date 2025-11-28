@@ -223,8 +223,8 @@ export default function LabStartPage({
 
     try {
       toast({
-        title: "VM 생성 시작",
-        description: "취약 환경을 구성하고 있습니다...",
+        title: "실습 환경 준비 중",
+        description: "실습 환경을 준비하고 있습니다. 약 2분 정도 소요될 수 있습니다...",
       });
 
       //console.log('[VM 생성] API 호출 시작:', cveId);
@@ -263,13 +263,6 @@ export default function LabStartPage({
         setExpiresAt(fallback);
         setTimerStarted(true);
       }
-
-      toast({
-        title: "VM 생성 완료",
-        description: response.guacamoleUrl
-          ? `호스트: ${response.hostname} (${response.privateIp})`
-          : "VM은 생성되었지만 원격 접속 URL을 아직 가져오지 못했습니다.",
-      });
     } catch (error) {
       console.error("VM 생성 실패:", error);
       setVmStatus("idle");
@@ -281,11 +274,11 @@ export default function LabStartPage({
       localStorage.removeItem("active_lab_session");
 
       toast({
-        title: "VM 생성 실패",
+        title: "실습 환경 준비 실패",
         description:
           error instanceof Error
             ? error.message
-            : "VM 생성 중 오류가 발생했습니다.",
+            : "실습 환경 준비 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
         variant: "destructive",
       });
     }
@@ -298,8 +291,8 @@ export default function LabStartPage({
 
     try {
       toast({
-        title: "VM 종료 중",
-        description: "VM을 종료하고 있습니다...",
+        title: "실습 환경 종료 중",
+        description: "실습 환경을 종료하고 있습니다...",
       });
 
       await deleteVM(vmId, cveId);
@@ -315,18 +308,18 @@ export default function LabStartPage({
       localStorage.removeItem("active_lab_session");
 
       toast({
-        title: "VM 종료 완료",
-        description: "VM이 성공적으로 종료되었습니다.",
+        title: "실습 환경 종료 완료",
+        description: "실습 환경이 성공적으로 종료되었습니다.",
       });
     } catch (error) {
       console.error("VM 종료 실패:", error);
 
       toast({
-        title: "VM 종료 실패",
+        title: "실습 환경 종료 실패",
         description:
           error instanceof Error
             ? error.message
-            : "VM 종료 중 오류가 발생했습니다.",
+            : "실습 환경 종료 중 오류가 발생했습니다.",
         variant: "destructive",
       });
     }
@@ -509,10 +502,10 @@ export default function LabStartPage({
                 {vmStatus === "creating" ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin inline" />
-                    생성 중...
+                    환경 준비 중...
                   </>
                 ) : (
-                  "VM 생성"
+                  "실습 시작"
                 )}
               </button>
               <button
@@ -549,7 +542,7 @@ export default function LabStartPage({
                   }
                 }}
               >
-                VM 종료
+                실습 종료
               </button>
               <button
                 type="button"
@@ -661,27 +654,27 @@ export default function LabStartPage({
               {vmStatus === "idle" && (
                 <div className="text-center space-y-4">
                   <p className="text-muted-foreground">
-                    VM이 생성되지 않았습니다
+                    실습 환경이 준비되지 않았습니다
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    상단의 "VM 생성" 버튼을 클릭하여 실습 환경을 시작하세요
+                    상단의 "실습 시작" 버튼을 클릭하여 실습 환경을 준비하세요
                   </p>
                 </div>
               )}
               {vmStatus === "terminated" && (
                 <div className="text-center space-y-4">
-                  <p className="text-muted-foreground">VM이 종료되었습니다.</p>
+                  <p className="text-muted-foreground">실습 환경이 종료되었습니다.</p>
                   <p className="text-sm text-muted-foreground">
-                    필요하면 다시 VM을 생성하거나 실습을 완료/취소하세요.
+                    필요하면 다시 실습을 시작하거나 실습을 완료하세요.
                   </p>
                 </div>
               )}
               {vmStatus === "creating" && (
                 <div className="text-center space-y-4">
                   <Loader2 className="w-16 h-16 mx-auto text-primary animate-spin" />
-                  <p className="text-muted-foreground">VM 환경 생성 중...</p>
+                  <p className="text-muted-foreground">실습 환경 준비 중...</p>
                   <p className="text-xs text-muted-foreground">
-                    {cveId} 취약 환경 구성 중
+                    약 2분 정도 소요될 수 있습니다
                   </p>
                 </div>
               )}
@@ -697,9 +690,9 @@ export default function LabStartPage({
               )}
               {vmStatus === "ready" && !terminalUrl && (
                 <div className="text-center space-y-2">
-                  <p className="text-muted-foreground">원격 접속 URL을 준비하고 있습니다.</p>
+                  <p className="text-muted-foreground">실습 환경을 연결하고 있습니다.</p>
                   <p className="text-xs text-muted-foreground">
-                    잠시 후 다시 시도하거나 페이지를 새로고침해 주세요.
+                    잠시만 기다려주세요.
                   </p>
                 </div>
               )}
@@ -711,16 +704,16 @@ export default function LabStartPage({
         <ConfirmDialog
           open={showCreateVmDialog}
           onOpenChange={setShowCreateVmDialog}
-          title="VM을 생성하시겠습니까?"
-          description={`${cveId} 취약 환경이 구성됩니다. VM 생성 후 타이머가 시작됩니다. (1시간)`}
+          title="실습을 시작하시겠습니까?"
+          description={`실습 환경을 준비합니다. 약 2분 정도 소요되며, 준비 완료 후 1시간 동안 실습할 수 있습니다.`}
           onConfirm={handleCreateVm}
         />
 
         <ConfirmDialog
           open={showStopVmDialog}
           onOpenChange={setShowStopVmDialog}
-          title="VM을 종료하시겠습니까?"
-          description="VM을 종료하면 현재 작업 내용이 저장되지 않을 수 있습니다."
+          title="실습 환경을 종료하시겠습니까?"
+          description="실습 환경을 종료하면 현재 작업 내용이 저장되지 않을 수 있습니다."
           onConfirm={handleStopVm}
         />
 

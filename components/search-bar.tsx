@@ -32,12 +32,12 @@ export function SearchBar({ onSearch, placeholder = "검색...", className }: Se
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className={cn(
-            "pl-9 bg-white border-none shadow-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-0",
+            "pl-9 !bg-white !border-none shadow-sm !text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-0",
             className
           )}
         />
       </div>
-      <Button type="submit" className="bg-zinc-900 text-white hover:bg-zinc-800 shadow-sm">검색</Button>
+      <Button type="submit" className="h-9 px-4 rounded-md shadow-sm bg-white text-zinc-900 border border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900">검색</Button>
     </form>
   )
 }

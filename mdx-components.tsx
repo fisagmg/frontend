@@ -160,14 +160,14 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     ),
 
     code: ({ children }: { children?: ReactNode }) => (
-      <code className="bg-muted px-2 py-0.5 rounded font-mono text-sm text-primary border border-primary/20">
+      <code className="font-mono text-sm text-black px-1">
         {children}
       </code>
     ),
 
     pre: ({ children }: { children?: ReactNode }) => (
       <div className="my-6 relative group">
-        <pre className="bg-slate-950 dark:bg-slate-900 text-slate-50 p-6 rounded-lg overflow-x-auto border border-slate-800">
+        <pre className="bg-transparent text-black p-6 rounded-lg overflow-x-auto">
           {children}
         </pre>
       </div>
