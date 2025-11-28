@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use, useEffect } from "react";
+import { useState, use, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { CountdownTimer } from "@/components/countdown-timer";
@@ -58,6 +58,9 @@ export default function LabStartPage({
   const [showTimeoutDialog, setShowTimeoutDialog] = useState(false);
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
   const [isCreatingReport, setIsCreatingReport] = useState(false);
+  
+  // Guacamole iframe ref
+  const guacamoleIframeRef = useRef<HTMLIFrameElement>(null);
 
   const metadata = cveMetadata[cveId] || {
     title: cveId,
@@ -153,6 +156,52 @@ export default function LabStartPage({
       window.removeEventListener("beforeunload", handleBeforeUnload)
     }
   }, [])
+
+  // Guacamole 공식 권장: iframe 자동 포커스 처리
+  useEffect(() => {
+    if (vmStatus !== "ready" || !terminalUrl || !guacamoleIframeRef.current) {
+      return;
+    }
+
+    /**
+     * Refocuses the iframe containing Guacamole if the user is not already
+     * focusing another non-body element on the page.
+     */
+    const refocusGuacamole = (event: MouseEvent | KeyboardEvent) => {
+      // Do not refocus if focus is on an input field, button, or textarea
+      const focused = document.activeElement;
+      if (focused && focused !== document.body) {
+        const tagName = focused.tagName.toLowerCase();
+        if (tagName === 'input' || tagName === 'textarea' || tagName === 'button' || tagName === 'select') {
+          return;
+        }
+      }
+
+      // Do not refocus if user clicked on the guide panel or scrollable area (왼쪽 패널)
+      if (event.target instanceof Element) {
+        // 가이드 패널을 클릭한 경우 iframe 포커스 방지 (스크롤 보호)
+        const clickedOnGuidePanel = event.target.closest('[data-guide-panel="true"]');
+        if (clickedOnGuidePanel) {
+          return;
+        }
+      }
+
+      // Ensure iframe is focused
+      guacamoleIframeRef.current?.focus();
+    };
+
+    // Attempt to refocus iframe upon click or keydown
+    document.addEventListener('click', refocusGuacamole as EventListener);
+    document.addEventListener('keydown', refocusGuacamole as EventListener);
+
+    console.log('[Guacamole] Auto-refocus listeners registered');
+
+    return () => {
+      document.removeEventListener('click', refocusGuacamole as EventListener);
+      document.removeEventListener('keydown', refocusGuacamole as EventListener);
+      console.log('[Guacamole] Auto-refocus listeners removed');
+    };
+  }, [vmStatus, terminalUrl])
 
   const handleCreateVm = async () => {
     console.log('[VM 생성] 시작');
@@ -574,6 +623,7 @@ export default function LabStartPage({
         <div className="flex-1 flex relative overflow-hidden">
           {/* Left: Guide Panel */}
           <div
+            data-guide-panel="true"
             className={`border-r border-border bg-white text-slate-900 overflow-y-auto transition-all duration-300 ${
               isPanelCollapsed ? "w-0" : "w-[30%]"
             }`}
@@ -638,10 +688,12 @@ export default function LabStartPage({
               )}
               {vmStatus === "ready" && terminalUrl && (
                 <iframe
+                  ref={guacamoleIframeRef}
                   src={terminalUrl}
                   className="w-full h-full rounded"
                   title="VM Terminal"
-                  sandbox="allow-same-origin allow-scripts allow-forms"
+                  allow="clipboard-read; clipboard-write; fullscreen"
+                  style={{ border: 0, pointerEvents: 'auto' }}
                 />
               )}
               {vmStatus === "ready" && !terminalUrl && (
