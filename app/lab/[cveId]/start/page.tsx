@@ -178,7 +178,7 @@ export default function LabStartPage({
         description: "취약 환경을 구성하고 있습니다...",
       });
 
-      console.log('[VM 생성] API 호출 시작:', cveId);
+      //console.log('[VM 생성] API 호출 시작:', cveId);
       const response = await createVM(cveId);
       //console.log('[VM 생성] API 호출 성공:', response);
 
