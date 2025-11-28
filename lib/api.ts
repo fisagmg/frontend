@@ -103,8 +103,25 @@ export async function verifyOtp(email: string, code: string) {
       method: "POST",
     }
   );
-  if (!r.ok)
-    throw new Error((await r.text()) || "인증번호가 유효하지 않습니다");
+  if (!r.ok) {
+    let errorMessage = "인증번호가 유효하지 않습니다";
+    try {
+      const errorText = await r.text();
+      const errorData = JSON.parse(errorText);
+      
+      // 백엔드에서 {"status":"INVALID"} 같은 응답이 오는 경우 처리
+      if (errorData.status === "INVALID") {
+        errorMessage = "인증번호가 일치하지 않습니다. 다시 확인해주세요.";
+      } else if (errorData.status === "EXPIRED") {
+        errorMessage = "인증번호가 만료되었습니다. 재전송을 눌러주세요.";
+      } else if (errorData.message) {
+        errorMessage = errorData.message;
+      }
+    } catch {
+      // JSON 파싱 실패 시 기본 메시지 사용
+    }
+    throw new Error(errorMessage);
+  }
   return r.json();
 }
 
@@ -508,6 +525,10 @@ export async function getCompletedLabs(): Promise<CompletedLabItem[]> {
     '/api/mypage/completed-cves'
   );
   return response.data;
+}
+
+export async function withdrawAccount(): Promise<void> {
+  await api.delete('/api/mypage/withdraw');
 }
 
 // ============================================

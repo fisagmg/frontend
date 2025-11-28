@@ -18,7 +18,7 @@ const navItems = [
 
 export function Header() {
   const pathname = usePathname()
-  const { isAuthed, logout } = useAuth()
+  const { isAuthed, email, userInfo, logout } = useAuth()
   const router = useRouter()
 
   const navigateWithGuard = useCallback(
@@ -81,31 +81,38 @@ export function Header() {
               ))}
             </nav>
           </div>
-          <div className="mr-8">
+          <div className="mr-8 flex items-center gap-3">
+            {isAuthed && (
+              <span className="text-sm font-semibold text-zinc-900 dark:text-white">
+                {userInfo?.fullName || email || "사용자"}
+              </span>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" aria-label="사용자 메뉴" className="!h-10 !w-10">
                   <User className="!h-5 !w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent side="bottom" align="end" sideOffset={4} className="mt-2">
+              <DropdownMenuContent side="bottom" align="end" sideOffset={4} className="mt-2 bg-white border-zinc-200">
                 {isAuthed ? (
                   <>
-                    <DropdownMenuItem asChild>
+                    <DropdownMenuItem asChild className="text-zinc-900 hover:bg-zinc-100 focus:bg-zinc-100 cursor-pointer">
                       <Link href="/mypage" onClick={handleNavClick("/mypage")}>
                         마이페이지
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleLogout}>로그아웃</DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleLogout} className="text-zinc-900 hover:bg-zinc-100 focus:bg-zinc-100 cursor-pointer">
+                      로그아웃
+                    </DropdownMenuItem>
                   </>
                 ) : (
                   <>
-                    <DropdownMenuItem asChild>
+                    <DropdownMenuItem asChild className="text-zinc-900 hover:bg-zinc-100 focus:bg-zinc-100 cursor-pointer">
                       <Link href="/login" onClick={handleNavClick("/login")}>
                         로그인
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
+                    <DropdownMenuItem asChild className="text-zinc-900 hover:bg-zinc-100 focus:bg-zinc-100 cursor-pointer">
                       <Link href="/signup" onClick={handleNavClick("/signup")}>
                         회원가입
                       </Link>

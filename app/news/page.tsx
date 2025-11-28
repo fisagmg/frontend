@@ -47,6 +47,11 @@ export default function NewsPage() {
     return news.filter((item) => item.title.toLowerCase().includes(normalizedQuery))
   }, [news, searchQuery])
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
   const totalPages = Math.max(1, Math.ceil(filteredNews.length / ITEMS_PER_PAGE))
   const paginatedNews = filteredNews.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
 
@@ -144,7 +149,7 @@ export default function NewsPage() {
 
         {!isLoading && !error && filteredNews.length > 0 && (
           <div className="mt-8 flex justify-center">
-            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
           </div>
         )}
       </div>
