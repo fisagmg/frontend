@@ -8,31 +8,22 @@ import { ConfirmDialog } from "@/components/confirm-dialog"
 import { FileText, Trash2, Download, Upload } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Badge } from "@/components/ui/badge"
-import { ReportResponse, getMyReports, getReportDownloadUrl, deleteReport, uploadReportFile } from "@/lib/api"
+import { 
+  ReportResponse, 
+  getMyReports, 
+  getReportDownloadUrl, 
+  deleteReport, 
+  uploadReportFile,
+  fetchCveList,
+  type CveBackendResponse
+} from "@/lib/api"
 
 const ITEMS_PER_PAGE = 10
-
-// Mock CVE 데이터 (실제로는 API에서 가져와야 함)
-const mockCVEs: Record<string, { title: string; cvss: number; category: string; summary: string; tags: string[] }> = {
-  "CVE-2025-1302": {
-    title: "JSONPath-Plus RCE 취약점",
-    cvss: 9.8,
-    category: "Critical",
-    summary: "JSONPath-Plus 라이브러리의 원격 코드 실행 취약점",
-    tags: ["RCE", "JavaScript", "Node.js"]
-  },
-  "CVE-2024-TEST": {
-    title: "테스트 취약점",
-    cvss: 7.5,
-    category: "High",
-    summary: "테스트용 CVE 설명",
-    tags: ["Test", "Security"]
-  }
-}
 
 export function MypageReports() {
   const [currentPage, setCurrentPage] = useState(1)
   const [reports, setReports] = useState<ReportResponse[]>([])
+  const [cveMap, setCveMap] = useState<Record<string, CveBackendResponse>>({})
   const [deleteId, setDeleteId] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [uploadingId, setUploadingId] = useState<number | null>(null)
@@ -41,9 +32,22 @@ export function MypageReports() {
   const loadReports = async () => {
     try {
       setIsLoading(true)
-      const userId = 1 // TODO: 실제 userId 획득
-      const data = await getMyReports(userId)
-      setReports(data)
+      
+      // 보고서 목록과 CVE 목록을 동시에 가져오기
+      const [reportsData, cvesData] = await Promise.all([
+        getMyReports(),
+        fetchCveList()
+      ])
+      
+      setReports(reportsData)
+      
+      // CVE 데이터를 Map으로 변환 (cveId로 빠르게 조회하기 위해)
+      const cveMapData: Record<string, CveBackendResponse> = {}
+      cvesData.forEach(cve => {
+        cveMapData[cve.name] = cve
+      })
+      setCveMap(cveMapData)
+      
     } catch (error) {
       console.error("보고서 목록 조회 실패:", error)
       toast({
@@ -62,8 +66,7 @@ export function MypageReports() {
 
   const handleDownload = async (reportId: number) => {
     try {
-      const userId = 1 // TODO: 실제 userId 획득
-      const { presignedUrl } = await getReportDownloadUrl(reportId, userId)
+      const { presignedUrl } = await getReportDownloadUrl(reportId)
       window.open(presignedUrl, '_blank')
       
       toast({
@@ -92,10 +95,8 @@ export function MypageReports() {
 
     setUploadingId(reportId)
     try {
-      const userId = 1 // TODO: 실제 userId 획득
-      
       // 백엔드로 파일 업로드 (S3 덮어쓰기)
-      await uploadReportFile(reportId, userId, file)
+      await uploadReportFile(reportId, file)
       
       // 업로드 성공 후 목록 새로고침
       await loadReports()
@@ -118,8 +119,7 @@ export function MypageReports() {
 
   const handleDelete = async (id: number) => {
     try {
-      const userId = 1 // TODO: 실제 userId 획득
-      await deleteReport(id, userId)
+      await deleteReport(id)
       setReports(reports.filter((r) => r.id !== id))
       setDeleteId(null)
 
@@ -170,6 +170,36 @@ export function MypageReports() {
     })
   }
 
+  // CVE 정보를 가져오는 헬퍼 함수
+  const getCveData = (cveId: string) => {
+    const cve = cveMap[cveId]
+    if (!cve) {
+      return {
+        title: "알 수 없음",
+        cvss: 0,
+        category: "Unknown",
+        summary: "CVE 정보를 찾을 수 없습니다",
+        tags: []
+      }
+    }
+    
+    // severity를 category로 변환
+    const severityToCategory: Record<string, string> = {
+      'Critical': 'Critical',
+      'High': 'High',
+      'Medium': 'Medium',
+      'Low': 'Low'
+    }
+    
+    return {
+      title: cve.outline || cve.name,
+      cvss: cve.cvssScore,
+      category: severityToCategory[cve.severity] || 'Unknown',
+      summary: cve.outline || "CVE 정보를 찾을 수 없습니다",
+      tags: [] // 백엔드에 tags 필드가 없으면 빈 배열
+    }
+  }
+
   const totalPages = Math.ceil(reports.length / ITEMS_PER_PAGE)
   const paginatedReports = reports.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
 
@@ -193,13 +223,7 @@ export function MypageReports() {
           <>
             <div className="grid gap-6 sm:grid-cols-2">
               {paginatedReports.map((report) => {
-                const cveData = mockCVEs[report.cveId] || {
-                  title: "알 수 없음",
-                  cvss: 0,
-                  category: "Unknown",
-                  summary: "CVE 정보를 찾을 수 없습니다",
-                  tags: []
-                }
+                const cveData = getCveData(report.cveId)
                 const cvssStyle = getCvssStyle(cveData.cvss)
                 
                 return (

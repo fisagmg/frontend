@@ -178,57 +178,45 @@ export async function fetchAllNews(): Promise<NewsResponse[]> {
 }
 
 export async function createReport(
-  userId: number,
   cveId: string,
   name: string
 ): Promise<ReportResponse> {
   const response = await api.post<ReportResponse>("/api/reports", {
-    userId,
     cveId,
     name,
   });
   return response.data;
 }
 
-export async function getMyReports(userId: number): Promise<ReportResponse[]> {
-  const response = await api.get<ReportResponse[]>("/api/reports/me", {
-    params: { userId },
-  });
+export async function getMyReports(): Promise<ReportResponse[]> {
+  const response = await api.get<ReportResponse[]>("/api/reports/me");
   return response.data;
 }
 
 export async function getReportDownloadUrl(
-  reportId: number,
-  userId: number
+  reportId: number
 ): Promise<PresignedUrlResponse> {
   const response = await api.get<PresignedUrlResponse>(
-    `/api/reports/${reportId}/download`,
-    {
-      params: { userId },
-    }
+    `/api/reports/${reportId}/download`
   );
   return response.data;
 }
 
 export async function deleteReport(
-  reportId: number,
-  userId: number
+  reportId: number
 ): Promise<void> {
-  await api.delete(`/api/reports/${reportId}`, {
-    params: { userId },
-  });
+  await api.delete(`/api/reports/${reportId}`);
 }
 
 export async function uploadReportFile(
   reportId: number,
-  userId: number,
   file: File
 ): Promise<ReportUploadResponse> {
   const formData = new FormData();
   formData.append("file", file);
 
   const response = await api.put<ReportUploadResponse>(
-    `/api/reports/${reportId}/file?userId=${userId}`,
+    `/api/reports/${reportId}/file`,
     formData,
     {
       headers: {

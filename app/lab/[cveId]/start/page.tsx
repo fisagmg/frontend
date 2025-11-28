@@ -397,11 +397,10 @@ export default function LabStartPage({
     setIsCreatingReport(true);
     
     try {
-      const userId = 1; // TODO: 실제 userId 획득 로직 추가 필요
       const reportName = `${cveId}_보고서_${new Date().toISOString().split("T")[0]}`;
 
-      console.log('[보고서 작성] API 호출 시작:', { userId, cveId, reportName });
-      const report = await createReport(userId, cveId, reportName);
+      console.log('[보고서 작성] API 호출 시작:', { cveId, reportName });
+      const report = await createReport(cveId, reportName);
       console.log('[보고서 작성] API 호출 성공:', report);
 
       if (report.presignedDownloadUrl) {
