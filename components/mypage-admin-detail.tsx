@@ -122,47 +122,47 @@ export function MypageAdminDetail({ labUuid, onBack }: MypageAdminDetailProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-zinc-50">
       {/* Header */}
-      <div className="border-b border-border bg-card px-6 py-4">
-        <Button variant="ghost" size="sm" onClick={onBack} className="mb-4">
+      <div className="border-b border-zinc-200 bg-white px-6 py-4">
+        <Button variant="ghost" size="sm" onClick={onBack} className="mb-4 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Labs
         </Button>
         
         <div className="mb-4">
-          <h2 className="text-2xl font-bold mb-1">{lab.cveName}</h2>
-          <p className="text-sm text-muted-foreground">Lab UUID: {lab.labUuid}</p>
+          <h2 className="text-2xl font-bold mb-1 text-zinc-900">{lab.cveName}</h2>
+          <p className="text-sm text-zinc-500">Lab UUID: {lab.labUuid}</p>
         </div>
 
         <div className="grid grid-cols-4 gap-6">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Activity className="h-4 w-4 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">상태</span>
+              <Activity className="h-4 w-4 text-zinc-400" />
+              <span className="text-xs text-zinc-500">상태</span>
             </div>
             {getStatusBadge(lab.status)}
           </div>
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <User className="h-4 w-4 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">사용자</span>
+              <User className="h-4 w-4 text-zinc-400" />
+              <span className="text-xs text-zinc-500">사용자</span>
             </div>
-            <p className="text-sm font-medium">{lab.userEmail}</p>
+            <p className="text-sm font-medium text-zinc-900">{lab.userEmail}</p>
           </div>
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Server className="h-4 w-4 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Instance ID</span>
+              <Server className="h-4 w-4 text-zinc-400" />
+              <span className="text-xs text-zinc-500">Instance ID</span>
             </div>
-            <p className="text-sm font-medium font-mono">{lab.instanceId}</p>
+            <p className="text-sm font-medium font-mono text-zinc-900">{lab.instanceId}</p>
           </div>
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">지역</span>
+              <MapPin className="h-4 w-4 text-zinc-400" />
+              <span className="text-xs text-zinc-500">지역</span>
             </div>
-            <p className="text-sm font-medium">{lab.region}</p>
+            <p className="text-sm font-medium text-zinc-900">{lab.region}</p>
           </div>
         </div>
       </div>
@@ -170,29 +170,29 @@ export function MypageAdminDetail({ labUuid, onBack }: MypageAdminDetailProps) {
       {/* Tabs */}
       <div className="px-6 py-6">
         <Tabs defaultValue="metrics" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
-          <TabsTrigger value="metrics">Metrics</TabsTrigger>
-          <TabsTrigger value="logs">Logs</TabsTrigger>
+        <TabsList className="grid w-full max-w-md grid-cols-2 mb-6 bg-zinc-200 text-zinc-500">
+          <TabsTrigger value="metrics" className="data-[state=active]:bg-white data-[state=active]:text-zinc-900">Metrics</TabsTrigger>
+          <TabsTrigger value="logs" className="data-[state=active]:bg-white data-[state=active]:text-zinc-900">Logs</TabsTrigger>
         </TabsList>
 
         <TabsContent value="metrics">
           {metricsLoading ? (
             <div className="space-y-6">
-              <Skeleton className="h-80 w-full" />
-              <Skeleton className="h-80 w-full" />
-              <Skeleton className="h-80 w-full" />
+              <Skeleton className="h-80 w-full bg-zinc-200" />
+              <Skeleton className="h-80 w-full bg-zinc-200" />
+              <Skeleton className="h-80 w-full bg-zinc-200" />
             </div>
           ) : metrics ? (
             <div className="space-y-6">
               {/* CPU Chart - Full Width */}
-              <Card className="bg-black border-border">
+              <Card className="bg-white border-zinc-200 shadow-sm">
                 <CardHeader className="pb-2">
                   <div className="flex items-baseline justify-between">
                     <div>
-                      <CardTitle className="text-base font-medium text-muted-foreground">CPU Usage (%)</CardTitle>
-                      <div className="text-3xl font-bold mt-1">{getMetricStats(metrics.cpu).current}%</div>
+                      <CardTitle className="text-base font-medium text-zinc-500">CPU Usage (%)</CardTitle>
+                      <div className="text-3xl font-bold mt-1 text-zinc-900">{getMetricStats(metrics.cpu).current}%</div>
                     </div>
-                    <div className="text-xs text-muted-foreground text-right">
+                    <div className="text-xs text-zinc-500 text-right">
                       <div>Min: {getMetricStats(metrics.cpu).min}%</div>
                       <div>Avg: {getMetricStats(metrics.cpu).avg}%</div>
                       <div>Max: {getMetricStats(metrics.cpu).max}%</div>
@@ -202,12 +202,12 @@ export function MypageAdminDetail({ labUuid, onBack }: MypageAdminDetailProps) {
                 <CardContent>
                   <ResponsiveContainer width="100%" height={350}>
                     <LineChart data={formatMetricData(metrics.cpu)}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                      <XAxis dataKey="time" stroke="#666" tick={{ fill: '#666', fontSize: 11 }} />
-                      <YAxis domain={[0, 100]} stroke="#666" tick={{ fill: '#666', fontSize: 11 }} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="time" stroke="#71717a" tick={{ fill: '#71717a', fontSize: 11 }} />
+                      <YAxis domain={[0, 100]} stroke="#71717a" tick={{ fill: '#71717a', fontSize: 11 }} />
                       <Tooltip 
-                        contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333' }}
-                        labelStyle={{ color: '#fff' }}
+                        contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e4e4e7', borderRadius: '0.375rem', boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)' }}
+                        labelStyle={{ color: '#18181b' }}
                       />
                       <Line type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2} dot={false} />
                     </LineChart>
@@ -218,21 +218,21 @@ export function MypageAdminDetail({ labUuid, onBack }: MypageAdminDetailProps) {
               {/* Disk and Memory Charts - Side by Side */}
               <div className="grid grid-cols-2 gap-6">
                 {/* Disk Chart */}
-                <Card className="bg-black border-border">
+                <Card className="bg-white border-zinc-200 shadow-sm">
                   <CardHeader className="pb-2">
                     <div className="flex items-baseline justify-between">
                       <div>
-                        <CardTitle className="text-base font-medium text-muted-foreground">Disk Usage (%)</CardTitle>
-                        <div className="text-3xl font-bold mt-1">
+                        <CardTitle className="text-base font-medium text-zinc-500">Disk Usage (%)</CardTitle>
+                        <div className="text-3xl font-bold mt-1 text-zinc-900">
                           {getMetricStats(metrics.disk).current}%
                         </div>
-                        <div className="text-xs text-muted-foreground mt-1">
+                        <div className="text-xs text-zinc-400 mt-1">
                           {metrics.diskDevice && <span>{metrics.diskDevice}</span>}
                           {metrics.diskPath && <span> → {metrics.diskPath}</span>}
                           {metrics.diskFstype && <span> ({metrics.diskFstype})</span>}
                         </div>
                       </div>
-                      <div className="text-xs text-muted-foreground text-right">
+                      <div className="text-xs text-zinc-500 text-right">
                         <div>Min: {getMetricStats(metrics.disk).min}%</div>
                         <div>Avg: {getMetricStats(metrics.disk).avg}%</div>
                         <div>Max: {getMetricStats(metrics.disk).max}%</div>
@@ -242,12 +242,12 @@ export function MypageAdminDetail({ labUuid, onBack }: MypageAdminDetailProps) {
                   <CardContent>
                     <ResponsiveContainer width="100%" height={300}>
                       <LineChart data={formatMetricData(metrics.disk)}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                        <XAxis dataKey="time" stroke="#666" tick={{ fill: '#666', fontSize: 11 }} />
-                        <YAxis domain={[0, 100]} stroke="#666" tick={{ fill: '#666', fontSize: 11 }} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis dataKey="time" stroke="#71717a" tick={{ fill: '#71717a', fontSize: 11 }} />
+                        <YAxis domain={[0, 100]} stroke="#71717a" tick={{ fill: '#71717a', fontSize: 11 }} />
                         <Tooltip 
-                          contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333' }}
-                          labelStyle={{ color: '#fff' }}
+                          contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e4e4e7', borderRadius: '0.375rem', boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)' }}
+                          labelStyle={{ color: '#18181b' }}
                         />
                         <Line type="monotone" dataKey="value" stroke="#f59e0b" strokeWidth={2} dot={false} />
                       </LineChart>
@@ -256,17 +256,17 @@ export function MypageAdminDetail({ labUuid, onBack }: MypageAdminDetailProps) {
                 </Card>
 
                 {/* Memory Chart */}
-                <Card className="bg-black border-border">
+                <Card className="bg-white border-zinc-200 shadow-sm">
                   <CardHeader className="pb-2">
                     <div className="flex items-baseline justify-between">
                       <div>
-                        <CardTitle className="text-base font-medium text-muted-foreground">Memory Usage (%)</CardTitle>
-                        <div className="text-3xl font-bold mt-1">
+                        <CardTitle className="text-base font-medium text-zinc-500">Memory Usage (%)</CardTitle>
+                        <div className="text-3xl font-bold mt-1 text-zinc-900">
                           {getMetricStats(metrics.memory).current}%
                         </div>
-                        <div className="text-xs text-muted-foreground mt-1">(3.2GB / 5GB)</div>
+                        <div className="text-xs text-zinc-400 mt-1">(3.2GB / 5GB)</div>
                       </div>
-                      <div className="text-xs text-muted-foreground text-right">
+                      <div className="text-xs text-zinc-500 text-right">
                         <div>Min: {getMetricStats(metrics.memory).min}%</div>
                         <div>Avg: {getMetricStats(metrics.memory).avg}%</div>
                         <div>Max: {getMetricStats(metrics.memory).max}%</div>
@@ -276,12 +276,12 @@ export function MypageAdminDetail({ labUuid, onBack }: MypageAdminDetailProps) {
                   <CardContent>
                     <ResponsiveContainer width="100%" height={300}>
                       <LineChart data={formatMetricData(metrics.memory)}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                        <XAxis dataKey="time" stroke="#666" tick={{ fill: '#666', fontSize: 11 }} />
-                        <YAxis domain={[0, 100]} stroke="#666" tick={{ fill: '#666', fontSize: 11 }} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis dataKey="time" stroke="#71717a" tick={{ fill: '#71717a', fontSize: 11 }} />
+                        <YAxis domain={[0, 100]} stroke="#71717a" tick={{ fill: '#71717a', fontSize: 11 }} />
                         <Tooltip 
-                          contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333' }}
-                          labelStyle={{ color: '#fff' }}
+                          contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e4e4e7', borderRadius: '0.375rem', boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)' }}
+                          labelStyle={{ color: '#18181b' }}
                         />
                         <Line type="monotone" dataKey="value" stroke="#06b6d4" strokeWidth={2} dot={false} />
                       </LineChart>
@@ -291,22 +291,22 @@ export function MypageAdminDetail({ labUuid, onBack }: MypageAdminDetailProps) {
               </div>
             </div>
           ) : (
-            <div className="text-center py-12 text-muted-foreground">
+            <div className="text-center py-12 text-zinc-500">
               <p>메트릭 데이터가 없습니다.</p>
             </div>
           )}
         </TabsContent>
 
         <TabsContent value="logs">
-          <Card>
+          <Card className="bg-white border-zinc-200 shadow-sm">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>시스템 로그</CardTitle>
+                <CardTitle className="text-zinc-900">시스템 로그</CardTitle>
                 <div className="flex items-center gap-4">
                   <select 
                     value={selectedLogStream}
                     onChange={(e) => setSelectedLogStream(e.target.value)}
-                    className="px-3 py-2 rounded-md border border-border bg-background text-sm"
+                    className="px-3 py-2 rounded-md border border-zinc-200 bg-white text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {metrics?.logs?.map((log) => (
                       <option key={log.logStream} value={log.logStream}>
@@ -318,18 +318,18 @@ export function MypageAdminDetail({ labUuid, onBack }: MypageAdminDetailProps) {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="bg-black text-green-400 p-4 rounded-lg font-mono text-xs h-[600px] overflow-y-auto">
+              <div className="bg-zinc-900 text-green-400 p-4 rounded-lg font-mono text-xs h-[600px] overflow-y-auto border border-zinc-800">
                 {selectedLogs?.events && selectedLogs.events.length > 0 ? (
                   selectedLogs.events.map((event, idx) => (
                     <div key={idx} className="mb-1">
-                      <span className="text-gray-500">
+                      <span className="text-zinc-500">
                         {new Date(event.timestamp).toLocaleTimeString("ko-KR")}
                       </span>{" "}
                       {event.message}
                     </div>
                   ))
                 ) : (
-                  <div className="text-gray-500">로그가 없습니다.</div>
+                  <div className="text-zinc-500">로그가 없습니다.</div>
                 )}
               </div>
             </CardContent>

@@ -121,99 +121,107 @@ export function MypageProfile() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2">정보 수정</h2>
+        <h2 className="text-2xl font-bold mb-2 text-zinc-900">정보 수정</h2>
       </div>
 
-      <Card>
+      <Card className="bg-white border-zinc-200 shadow-sm">
         <CardHeader>
-          <CardTitle>기본 정보</CardTitle>
+          <CardTitle className="text-zinc-900">기본 정보</CardTitle>
           {/* <CardDescription>이름과 전화번호를 수정할 수 있습니다</CardDescription> */}
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">이메일</Label>
+            <Label htmlFor="email" className="text-zinc-700">이메일</Label>
             <Input
               id="email"
               value={email}
               disabled
               readOnly
+              className="bg-white border-zinc-200 text-zinc-900 disabled:bg-zinc-50 disabled:text-zinc-500"
             />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="firstName">이름</Label>
+              <Label htmlFor="firstName" className="text-zinc-700">이름</Label>
               <Input
                 id="firstName"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 disabled={isProfileLoading || isUpdatingProfile}
+                className="bg-white border-zinc-200 text-zinc-900 focus-visible:ring-blue-500"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="lastName">성</Label>
+              <Label htmlFor="lastName" className="text-zinc-700">성</Label>
               <Input
                 id="lastName"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 disabled={isProfileLoading || isUpdatingProfile}
+                className="bg-white border-zinc-200 text-zinc-900 focus-visible:ring-blue-500"
               />
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="phone">전화번호</Label>
+            <Label htmlFor="phone" className="text-zinc-700">전화번호</Label>
             <Input
               id="phone"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               disabled={isProfileLoading || isUpdatingProfile}
+              className="bg-white border-zinc-200 text-zinc-900 focus-visible:ring-blue-500"
             />
           </div>
           <Button
             onClick={handleUpdateProfile}
             disabled={isProfileLoading || isUpdatingProfile}
+            className="bg-zinc-900 text-white hover:bg-zinc-800"
           >
             {isUpdatingProfile ? "수정 중..." : "정보 수정"}
           </Button>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="bg-white border-zinc-200 shadow-sm">
         <CardHeader>
-          <CardTitle>비밀번호 변경</CardTitle>
-          <CardDescription>새로운 비밀번호로 변경할 수 있습니다</CardDescription>
+          <CardTitle className="text-zinc-900">비밀번호 변경</CardTitle>
+          <CardDescription className="text-zinc-500">새로운 비밀번호로 변경할 수 있습니다</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="currentPassword">현재 비밀번호</Label>
+            <Label htmlFor="currentPassword" className="text-zinc-700">현재 비밀번호</Label>
             <Input
               id="currentPassword"
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               disabled={isUpdatingPassword}
+              className="bg-white border-zinc-200 text-zinc-900 focus-visible:ring-blue-500"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="newPassword">새 비밀번호</Label>
+            <Label htmlFor="newPassword" className="text-zinc-700">새 비밀번호</Label>
             <Input
               id="newPassword"
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               disabled={isUpdatingPassword}
+              className="bg-white border-zinc-200 text-zinc-900 focus-visible:ring-blue-500"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">새 비밀번호 확인</Label>
+            <Label htmlFor="confirmPassword" className="text-zinc-700">새 비밀번호 확인</Label>
             <Input
               id="confirmPassword"
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               disabled={isUpdatingPassword}
+              className="bg-white border-zinc-200 text-zinc-900 focus-visible:ring-blue-500"
             />
           </div>
-          <Button onClick={handleUpdatePassword} disabled={isUpdatingPassword}>
+          <Button onClick={handleUpdatePassword} disabled={isUpdatingPassword} className="bg-zinc-900 text-white hover:bg-zinc-800">
             {isUpdatingPassword ? "변경 중..." : "비밀번호 변경"}
           </Button>
         </CardContent>

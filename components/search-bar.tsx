@@ -6,13 +6,15 @@ import { useState } from "react"
 import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 interface SearchBarProps {
   onSearch: (query: string) => void
   placeholder?: string
+  className?: string
 }
 
-export function SearchBar({ onSearch, placeholder = "검색..." }: SearchBarProps) {
+export function SearchBar({ onSearch, placeholder = "검색...", className }: SearchBarProps) {
   const [query, setQuery] = useState("")
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -29,7 +31,10 @@ export function SearchBar({ onSearch, placeholder = "검색..." }: SearchBarProp
           placeholder={placeholder}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="pl-9 bg-white border-none shadow-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-0"
+          className={cn(
+            "pl-9 bg-white border-none shadow-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-0",
+            className
+          )}
         />
       </div>
       <Button type="submit" className="bg-zinc-900 text-white hover:bg-zinc-800 shadow-sm">검색</Button>

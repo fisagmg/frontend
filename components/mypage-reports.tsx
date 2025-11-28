@@ -136,11 +136,27 @@ export function MypageReports() {
     }
   }
 
-  const getCvssCategory = (cvss: number) => {
-    if (cvss >= 9.0) return { label: "Critical", color: "bg-red-600" }
-    if (cvss >= 7.0) return { label: "High", color: "bg-orange-600" }
-    if (cvss >= 4.0) return { label: "Medium", color: "bg-yellow-600" }
-    return { label: "Low", color: "bg-green-600" }
+  const getCvssStyle = (cvss: number) => {
+    if (cvss >= 9.0) return { 
+      label: "Critical", 
+      badge: "bg-red-50 text-red-700 ring-1 ring-red-200 hover:bg-red-100",
+      text: "text-red-700"
+    }
+    if (cvss >= 7.0) return { 
+      label: "High", 
+      badge: "bg-orange-50 text-orange-700 ring-1 ring-orange-200 hover:bg-orange-100",
+      text: "text-orange-700"
+    }
+    if (cvss >= 4.0) return { 
+      label: "Medium", 
+      badge: "bg-amber-50 text-amber-700 ring-1 ring-amber-200 hover:bg-amber-100",
+      text: "text-amber-700"
+    }
+    return { 
+      label: "Low", 
+      badge: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-100",
+      text: "text-emerald-700"
+    }
   }
 
   const formatDate = (isoString: string) => {
@@ -161,17 +177,17 @@ export function MypageReports() {
     <>
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold mb-2">작성한 보고서</h2>
-          <p className="text-muted-foreground">제출한 실습 보고서 목록입니다</p>
+          <h2 className="text-2xl font-bold mb-2 text-zinc-900">작성한 보고서</h2>
+          <p className="text-zinc-500">제출한 실습 보고서 목록입니다</p>
         </div>
 
         {isLoading ? (
-          <Card>
-            <CardContent className="py-12 text-center text-muted-foreground">로딩 중...</CardContent>
+          <Card className="bg-white border-zinc-200 shadow-sm">
+            <CardContent className="py-12 text-center text-zinc-500">로딩 중...</CardContent>
           </Card>
         ) : reports.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center text-muted-foreground">작성한 보고서가 없습니다</CardContent>
+          <Card className="bg-white border-zinc-200 shadow-sm">
+            <CardContent className="py-12 text-center text-zinc-500">작성한 보고서가 없습니다</CardContent>
           </Card>
         ) : (
           <>
@@ -184,54 +200,60 @@ export function MypageReports() {
                   summary: "CVE 정보를 찾을 수 없습니다",
                   tags: []
                 }
-                const cvssCategory = getCvssCategory(cveData.cvss)
+                const cvssStyle = getCvssStyle(cveData.cvss)
                 
                 return (
-                  <Card key={report.id} className="hover:border-primary/50 transition-colors">
+                  <Card key={report.id} className="hover:border-blue-500 transition-colors bg-white border-zinc-200 shadow-sm">
                     <CardHeader>
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-start gap-3 flex-1">
-                          <div className="rounded-lg bg-primary/10 p-2">
-                            <FileText className="h-5 w-5 text-primary" />
+                          <div className="rounded-lg bg-blue-50 p-2">
+                            <FileText className="h-5 w-5 text-blue-600" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <CardTitle className="text-lg">{report.cveId}</CardTitle>
-                            <CardDescription className="mt-1 line-clamp-1">{cveData.title}</CardDescription>
+                            <CardTitle className="text-lg text-zinc-900">{report.cveId}</CardTitle>
+                            <CardDescription className="mt-1 line-clamp-1 text-zinc-500">{cveData.title}</CardDescription>
                           </div>
                         </div>
-                        <Badge className={cvssCategory.color}>{cvssCategory.label}</Badge>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-lg font-bold tabular-nums ${cvssStyle.text}`}>
+                            {cveData.cvss.toFixed(1)}
+                          </span>
+                          <Badge className={`font-medium border-0 ${cvssStyle.badge}`}>
+                            {cvssStyle.label}
+                          </Badge>
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2 mb-4">
-                        <p className="text-sm text-muted-foreground line-clamp-2">
+                        <p className="text-sm text-zinc-600 line-clamp-2">
                           {cveData.summary}
                         </p>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-medium">CVSS:</span>
-                          <span className="text-xs">{cveData.cvss}</span>
                           {cveData.tags.map((tag, index) => (
-                            <Badge key={index} variant="outline" className="text-xs">
+                            <Badge key={index} variant="secondary" className="text-xs bg-zinc-100 text-zinc-600 hover:bg-zinc-200">
                               {tag}
                             </Badge>
                           ))}
                         </div>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-zinc-400">
                           수정일: {formatDate(report.updatedAt)}
                         </p>
                       </div>
                       <div className="flex gap-2">
                         <Button 
                           size="sm" 
-                          variant="outline" 
+                          variant="ghost" 
                           onClick={() => handleDownload(report.id)}
+                          className="bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900"
                         >
                           <Download className="h-3 w-3 mr-1" />
                           다운로드
                         </Button>
                         <Button 
                           size="sm" 
-                          variant="outline" 
+                          variant="ghost" 
                           disabled={uploadingId === report.id}
                           onClick={() => {
                             const input = document.createElement('input')
@@ -243,14 +265,16 @@ export function MypageReports() {
                             }
                             input.click()
                           }}
+                          className="bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900"
                         >
                           <Upload className="h-3 w-3 mr-1" />
                           {uploadingId === report.id ? '업로드 중...' : '수정'}
                         </Button>
                         <Button 
                           size="sm" 
-                          variant="outline" 
+                          variant="ghost" 
                           onClick={() => setDeleteId(report.id)}
+                          className="bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
                         >
                           <Trash2 className="h-3 w-3 mr-1" />
                           삭제
@@ -279,3 +303,4 @@ export function MypageReports() {
     </>
   )
 }
+

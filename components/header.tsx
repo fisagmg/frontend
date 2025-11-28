@@ -81,38 +81,40 @@ export function Header() {
               ))}
             </nav>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="사용자 메뉴" className="h-10 w-10">
-                <User className="h-6 w-6" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {isAuthed ? (
-                <>
-                  <DropdownMenuItem asChild>
-                    <Link href="/mypage" onClick={handleNavClick("/mypage")}>
-                      마이페이지
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLogout}>로그아웃</DropdownMenuItem>
-                </>
-              ) : (
-                <>
-                  <DropdownMenuItem asChild>
-                    <Link href="/login" onClick={handleNavClick("/login")}>
-                      로그인
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/signup" onClick={handleNavClick("/signup")}>
-                      회원가입
-                    </Link>
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="mr-8">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="사용자 메뉴" className="!h-10 !w-10">
+                  <User className="!h-5 !w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="bottom" align="end" sideOffset={4} className="mt-2">
+                {isAuthed ? (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link href="/mypage" onClick={handleNavClick("/mypage")}>
+                        마이페이지
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleLogout}>로그아웃</DropdownMenuItem>
+                  </>
+                ) : (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link href="/login" onClick={handleNavClick("/login")}>
+                        로그인
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/signup" onClick={handleNavClick("/signup")}>
+                        회원가입
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
     </header>

@@ -89,22 +89,22 @@ export function MypageAdminConsole({ onDetailViewChange }: MypageAdminConsolePro
   }
 
   return (
-    <Card>
+    <Card className="bg-white border-zinc-200 shadow-sm">
       <CardHeader>
-        <CardTitle className="text-2xl flex items-center gap-2">
+        <CardTitle className="text-2xl flex items-center gap-2 text-zinc-900">
           <span className="text-2xl">📊</span> 랩 관리
         </CardTitle>
-        <CardDescription>실행 중인 모든 CVE 랩 세션을 관리하세요</CardDescription>
+        <CardDescription className="text-zinc-500">실행 중인 모든 CVE 랩 세션을 관리하세요</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="mb-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
             <Input
               placeholder="이메일 또는 CVE 이름으로 검색..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-10 bg-white border-zinc-200 text-zinc-900 focus-visible:ring-blue-500 placeholder:text-zinc-400"
             />
           </div>
         </div>
@@ -112,42 +112,42 @@ export function MypageAdminConsole({ onDetailViewChange }: MypageAdminConsolePro
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (
-              <Skeleton key={i} className="h-16 w-full" />
+              <Skeleton key={i} className="h-16 w-full bg-zinc-100" />
             ))}
           </div>
         ) : filteredLabs.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
+          <div className="text-center py-12 text-zinc-500">
             <p>표시할 Lab이 없습니다.</p>
           </div>
         ) : (
-          <div className="rounded-lg border border-border overflow-hidden">
+          <div className="rounded-lg border border-zinc-200 overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Lab UUID</TableHead>
-                  <TableHead className="font-semibold">CVE 이름</TableHead>
-                  <TableHead className="font-semibold">사용자 이메일</TableHead>
-                  <TableHead className="font-semibold">생성 시간</TableHead>
-                  <TableHead className="font-semibold text-right">작업</TableHead>
+                <TableRow className="bg-zinc-50 hover:bg-zinc-50 border-b border-zinc-200">
+                  <TableHead className="font-semibold text-zinc-700">Lab UUID</TableHead>
+                  <TableHead className="font-semibold text-zinc-700">CVE 이름</TableHead>
+                  <TableHead className="font-semibold text-zinc-700">사용자 이메일</TableHead>
+                  <TableHead className="font-semibold text-zinc-700">생성 시간</TableHead>
+                  <TableHead className="font-semibold text-right text-zinc-700">작업</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredLabs.map((lab) => (
                   <TableRow
                     key={lab.labUuid}
-                    className="cursor-pointer hover:bg-accent/50 transition-colors"
+                    className="cursor-pointer hover:bg-zinc-50 transition-colors border-b border-zinc-100"
                     onClick={() => handleLabSelect(lab.labUuid)}
                   >
-                    <TableCell className="font-mono text-sm">
+                    <TableCell className="font-mono text-sm text-zinc-600">
                       {lab.labUuid.substring(0, 12)}...
                     </TableCell>
-                    <TableCell className="font-medium">{lab.cveName}</TableCell>
-                    <TableCell>{lab.userEmail}</TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="font-medium text-zinc-900">{lab.cveName}</TableCell>
+                    <TableCell className="text-zinc-700">{lab.userEmail}</TableCell>
+                    <TableCell className="text-zinc-500">
                       {formatDateTime(lab.createdAt)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <ChevronRight className="h-5 w-5 inline-block text-muted-foreground" />
+                      <ChevronRight className="h-5 w-5 inline-block text-zinc-400" />
                     </TableCell>
                   </TableRow>
                 ))}
