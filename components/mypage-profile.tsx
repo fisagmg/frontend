@@ -1,19 +1,32 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
   changeMyPassword,
   getMyProfile,
   updateMyProfile,
+  withdrawAccount,
 } from "@/lib/api"
 
 export function MypageProfile() {
   const { toast } = useToast()
+  const router = useRouter()
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
   const [phone, setPhone] = useState("")
@@ -24,6 +37,8 @@ export function MypageProfile() {
   const [isProfileLoading, setIsProfileLoading] = useState(true)
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false)
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
+  const [isWithdrawDialogOpen, setIsWithdrawDialogOpen] = useState(false)
+  const [isWithdrawing, setIsWithdrawing] = useState(false)
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -115,6 +130,39 @@ export function MypageProfile() {
       })
     } finally {
       setIsUpdatingPassword(false)
+    }
+  }
+
+  const handleWithdraw = async () => {
+    setIsWithdrawing(true)
+    try {
+      await withdrawAccount()
+      
+      toast({
+        title: "회원 탈퇴 완료",
+        description: "그동안 이용해주셔서 감사합니다.",
+      })
+
+      // 로컬 스토리지에서 토큰 제거
+      localStorage.removeItem("access_token")
+      localStorage.removeItem("user")
+
+      // 로그인 페이지로 이동
+      setTimeout(() => {
+        router.push("/login")
+      }, 1000)
+    } catch (error: any) {
+      console.error("Failed to withdraw:", error)
+      const apiMessage =
+        error?.response?.data?.message || error?.response?.data?.error || "회원 탈퇴 중 오류가 발생했습니다."
+      toast({
+        title: "회원 탈퇴 실패",
+        description: apiMessage,
+        variant: "destructive",
+      })
+    } finally {
+      setIsWithdrawing(false)
+      setIsWithdrawDialogOpen(false)
     }
   }
 
@@ -226,6 +274,48 @@ export function MypageProfile() {
           </Button>
         </CardContent>
       </Card>
+
+      <Card className="bg-white border-zinc-200 shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-zinc-900">회원 탈퇴</CardTitle>
+          <CardDescription className="text-zinc-500">
+            회원 탈퇴 시 모든 데이터가 삭제되며 복구할 수 없습니다
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button 
+            onClick={() => setIsWithdrawDialogOpen(true)}
+            variant="destructive"
+            disabled={isWithdrawing}
+            className="bg-red-600 text-white hover:bg-red-700"
+          >
+            탈퇴하기
+          </Button>
+        </CardContent>
+      </Card>
+
+      <AlertDialog open={isWithdrawDialogOpen} onOpenChange={setIsWithdrawDialogOpen}>
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-zinc-900">정말 탈퇴하시겠습니까?</AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-500">
+              이 작업은 되돌릴 수 없습니다. 계정과 관련된 모든 데이터가 영구적으로 삭제됩니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-white text-zinc-900 border-zinc-200 hover:bg-zinc-50">
+              취소
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleWithdraw}
+              disabled={isWithdrawing}
+              className="bg-red-600 text-white hover:bg-red-700"
+            >
+              {isWithdrawing ? "처리 중..." : "탈퇴하기"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
