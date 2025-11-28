@@ -63,7 +63,15 @@ export function MypageAiAnalysis({ initialIncidentId }: MypageAiAnalysisProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // 리스트 가져오기
+  // ✅ initialIncidentId가 변경되면 viewMode 업데이트
+  useEffect(() => {
+    if (initialIncidentId) {
+      setSelectedId(initialIncidentId);
+      setViewMode("detail");
+    }
+  }, [initialIncidentId]);
+
+  // 리스트 가져오기 (기존과 동일)
   useEffect(() => {
     const fetchIncidents = async () => {
       try {
@@ -86,7 +94,7 @@ export function MypageAiAnalysis({ initialIncidentId }: MypageAiAnalysisProps) {
     fetchIncidents();
   }, []);
 
-  // 선택된 incident 상세 가져오기
+  // 선택된 incident 상세 가져오기 (기존과 동일)
   useEffect(() => {
     if (!selectedId || viewMode !== "detail") {
       setSelectedIncident(null);
@@ -122,6 +130,7 @@ export function MypageAiAnalysis({ initialIncidentId }: MypageAiAnalysisProps) {
   const handleBackToList = () => {
     setViewMode("list");
     setSelectedId(undefined);
+    // ✅ URL에서 incidentId 파라미터 제거
     window.history.replaceState({}, "", "/mypage");
   };
 
