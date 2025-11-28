@@ -40,7 +40,7 @@ export default function LoginPage() {
     }
 
     const data = await res.json()
-    console.log("로그인 결과:", data) // access_token 있을 거야
+    //console.log("로그인 결과:", data) // access_token 있을 거야
 
     
     // ✅ access_token 저장

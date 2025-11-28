@@ -89,9 +89,9 @@ export default function SignupPage() {
 
     try {
       setIsLoading(true)
-      console.log("회원가입 요청:", { email, password: "***", firstName, lastName, phone })
+      //console.log("회원가입 요청:", { email, password: "***", firstName, lastName, phone })
       const res = await signup({ email, password, firstName, lastName, phone })
-      console.log("회원가입 응답:", res)
+      //console.log("회원가입 응답:", res)
       toast({
         title: "가입이 완료되었습니다",
         description: `${res.email ?? email} 으로 가입 처리되었습니다. 로그인해주세요.`,
