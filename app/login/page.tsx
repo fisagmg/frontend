@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,10 +14,22 @@ import { getApiBaseUrl, getMyProfile } from "@/lib/api"
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { login } = useAuth()
+  const { login, isAuthed } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+
+  // 로그인된 사용자는 홈으로 리다이렉트
+  useEffect(() => {
+    if (isAuthed) {
+      router.push("/")
+    }
+  }, [isAuthed, router])
+
+  // 로그인된 사용자는 페이지를 렌더링하지 않음
+  if (isAuthed) {
+    return null
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

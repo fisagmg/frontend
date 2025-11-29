@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, use, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { CountdownTimer } from "@/components/countdown-timer";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -44,6 +44,7 @@ export default function LabStartPage({
 }) {
   const { cveId } = use(params);
   const router = useRouter();
+  const pathname = usePathname();
   const { toast } = useToast();
   const [vmStatus, setVmStatus] = useState<"idle" | "creating" | "ready" | "terminated">(
     "idle"
@@ -56,6 +57,8 @@ export default function LabStartPage({
   const [showStopVmDialog, setShowStopVmDialog] = useState(false);
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
   const [showTimeoutDialog, setShowTimeoutDialog] = useState(false);
+  const [showExitDialog, setShowExitDialog] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
   const [isCreatingReport, setIsCreatingReport] = useState(false);
   
@@ -128,34 +131,355 @@ export default function LabStartPage({
     }
   }, [vmId, storageKey]);
 
-  useEffect(() => {
-    if (typeof window === "undefined") {
+  // VM 종료 함수
+  const terminateVMOnExit = useRef(false)
+  const isExitingConfirmed = useRef(false) // 확인 다이얼로그에서 확인을 눌렀는지 여부
+
+  const handleVMTermination = async (reason: string, silent: boolean = false) => {
+    if (terminateVMOnExit.current) {
+      return // 이미 종료 요청이 진행 중
+    }
+
+    const raw = localStorage.getItem("active_lab_session")
+    if (!raw) {
       return
     }
 
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+    try {
+      const session = JSON.parse(raw) as { status?: string; uuid?: string; cveId?: string }
+      if (session?.status && ["creating", "ready"].includes(session.status) && session.uuid && session.cveId) {
+        terminateVMOnExit.current = true
+
+        if (!silent) {
+          toast({
+            title: "실습 환경 종료 중",
+            description: "실습 환경을 종료하고 있습니다...",
+          });
+        }
+
+        try {
+          // VM 종료 요청
+          await cancelLabSession(session.uuid, session.cveId);
+          
+          if (!silent) {
+            toast({
+              title: "실습 환경 종료 완료",
+              description: "실습 환경이 성공적으로 종료되었습니다.",
+            });
+          }
+        } catch (error) {
+          console.error("VM 종료 실패:", error);
+          // keepalive로 재시도
+          const terminateUrl = `${getApiBaseUrl()}/api/labs/destroy`
+          const token = localStorage.getItem("access_token")
+          
+          const payload = JSON.stringify({
+            uuid: session.uuid,
+            cveId: session.cveId
+          })
+
+          fetch(terminateUrl, {
+            method: 'POST',
+            body: payload,
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token && { 'Authorization': `Bearer ${token}` })
+            },
+            keepalive: true
+          }).catch(() => {
+            // 에러는 무시 (페이지가 이동 중이므로)
+          })
+        }
+
+        // localStorage 정리
+        localStorage.removeItem("active_lab_session")
+        localStorage.removeItem(`lab_session_${session.cveId}`)
+
+        console.log(`[VM 종료] ${reason}: VM ${session.uuid} 종료 요청 전송`)
+      }
+    } catch (error) {
+      console.error("VM 종료 처리 실패:", error)
+      localStorage.removeItem("active_lab_session")
+    }
+  }
+
+  // 활성 VM 세션이 있는지 확인
+  const hasActiveVMSession = () => {
+    const raw = localStorage.getItem("active_lab_session")
+    if (!raw) {
+      return false
+    }
+    try {
+      const session = JSON.parse(raw) as { status?: string; uuid?: string; cveId?: string }
+      return session?.status && ["creating", "ready"].includes(session.status) && session.uuid && session.cveId
+    } catch {
+      return false
+    }
+  }
+
+  // 페이지 이동 확인 다이얼로그에서 확인을 누른 경우
+  const handleConfirmExit = async () => {
+    isExitingConfirmed.current = true;
+    setShowExitDialog(false);
+    await handleVMTermination("페이지 이동", false);
+    
+    if (pendingNavigation) {
+      router.push(pendingNavigation);
+      setPendingNavigation(null);
+    } else {
+      router.back();
+    }
+  }
+
+  // 페이지 이동 확인 다이얼로그에서 취소를 누른 경우
+  const handleCancelExit = () => {
+    isExitingConfirmed.current = false;
+    setShowExitDialog(false);
+    setPendingNavigation(null);
+    terminateVMOnExit.current = false; // 종료 플래그 리셋
+  }
+
+  // 전역 라우팅 가로채기 (Link 클릭 및 router.push 감지)
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const handleLinkClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      const link = target.closest('a[href]') as HTMLAnchorElement;
+      
+      if (!link || !hasActiveVMSession()) {
+        return;
+      }
+
+      const href = link.getAttribute('href');
+      if (!href) {
+        return;
+      }
+
+      // lab 페이지 내부 링크는 무시
+      if (href.startsWith(`/lab/${cveId}/start`)) {
+        return;
+      }
+
+      // 외부 링크나 다른 페이지로 이동하는 경우
+      if (href.startsWith('/') || href.startsWith('#')) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        setPendingNavigation(href);
+        setShowExitDialog(true);
+      }
+    };
+
+    // router.push 가로채기
+    const originalPush = router.push;
+    router.push = function(...args: Parameters<typeof router.push>) {
+      let href = '';
+      if (typeof args[0] === 'string') {
+        href = args[0];
+      } else if (args[0] && typeof args[0] === 'object' && 'pathname' in args[0]) {
+        href = (args[0] as { pathname?: string }).pathname || '';
+      }
+      
+      if (hasActiveVMSession() && href && !href.startsWith(`/lab/${cveId}/start`)) {
+        setPendingNavigation(href);
+        setShowExitDialog(true);
+        return Promise.resolve();
+      }
+      
+      return originalPush.apply(router, args);
+    };
+
+    document.addEventListener('click', handleLinkClick, true);
+
+    return () => {
+      document.removeEventListener('click', handleLinkClick, true);
+      router.push = originalPush;
+    };
+  }, [router, cveId, showExitDialog])
+
+  // pathname 변경 감지 (추가 안전장치)
+  useEffect(() => {
+    // 다이얼로그가 이미 열려있거나 확인을 눌렀으면 무시
+    if (showExitDialog || isExitingConfirmed.current) {
+      return;
+    }
+
+    // 현재 경로가 lab 페이지가 아닐 때 확인 다이얼로그 표시
+    if (pathname && pathname !== `/lab/${cveId}/start` && !pathname.startsWith(`/lab/${cveId}/start`)) {
+      if (hasActiveVMSession()) {
+        setPendingNavigation(pathname);
+        setShowExitDialog(true);
+        // 페이지 이동을 일시적으로 막기 위해 이전 경로로 돌아가기
+        router.replace(`/lab/${cveId}/start`);
+      }
+    }
+  }, [pathname, cveId, router, showExitDialog])
+
+  // 컴포넌트 언마운트 시 VM 종료 처리 (추가 안전장치 - 확인 없이 종료)
+  useEffect(() => {
+    return () => {
+      // 확인 다이얼로그가 열려있거나 확인을 눌렀을 때만 종료
+      // 취소를 눌렀을 때는 종료하지 않음
+      if (!isExitingConfirmed.current) {
+        return;
+      }
+
+      // 컴포넌트가 언마운트될 때는 이미 페이지를 떠나는 중이므로 확인 없이 종료
       const raw = localStorage.getItem("active_lab_session")
       if (!raw) {
         return
       }
 
       try {
-        const session = JSON.parse(raw) as { status?: string }
-        if (session?.status && ["creating", "ready"].includes(session.status)) {
-          event.preventDefault()
-          event.returnValue = "작업 중인 실습 VM이 종료됩니다."
+        const session = JSON.parse(raw) as { status?: string; uuid?: string; cveId?: string }
+        if (session?.status && ["creating", "ready"].includes(session.status) && session.uuid && session.cveId) {
+          // keepalive로 종료 요청만 전송 (확인 다이얼로그는 표시 불가)
+          const terminateUrl = `${getApiBaseUrl()}/api/labs/destroy`
+          const token = localStorage.getItem("access_token")
+          
+          const payload = JSON.stringify({
+            uuid: session.uuid,
+            cveId: session.cveId
+          })
+
+          fetch(terminateUrl, {
+            method: 'POST',
+            body: payload,
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token && { 'Authorization': `Bearer ${token}` })
+            },
+            keepalive: true
+          }).catch(() => {
+            // 에러는 무시
+          })
+
+          localStorage.removeItem("active_lab_session")
+          localStorage.removeItem(`lab_session_${session.cveId}`)
+        }
+      } catch {
+        localStorage.removeItem("active_lab_session")
+      }
+    }
+  }, [cveId])
+
+  // 브라우저를 닫거나 새로고침할 때 VM 종료 처리
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return
+    }
+
+    let shouldTerminateVM = false
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      // 활성 VM 세션이 있으면 경고 표시
+      if (hasActiveVMSession()) {
+        // 사용자가 확인을 누를 것으로 가정하고 플래그 설정
+        // (취소를 누르면 pagehide 이벤트가 발생하지 않음)
+        shouldTerminateVM = true
+        event.preventDefault()
+        event.returnValue = "실습 VM이 종료됩니다. 페이지를 나가시겠습니까?"
+      }
+    }
+
+    // 페이지가 실제로 언로드될 때 VM 종료 (사용자가 확인을 눌렀을 때만 발생)
+    const handlePageHide = () => {
+      if (!shouldTerminateVM) {
+        return
+      }
+
+      const raw = localStorage.getItem("active_lab_session")
+      if (!raw) {
+        return
+      }
+
+      try {
+        const session = JSON.parse(raw) as { status?: string; uuid?: string; cveId?: string }
+        if (session?.status && ["creating", "ready"].includes(session.status) && session.uuid && session.cveId) {
+          // keepalive로 종료 요청 전송 (페이지가 닫혀도 요청이 완료됨)
+          const terminateUrl = `${getApiBaseUrl()}/api/labs/destroy`
+          const token = localStorage.getItem("access_token")
+          
+          const payload = JSON.stringify({
+            uuid: session.uuid,
+            cveId: session.cveId
+          })
+
+          // navigator.sendBeacon을 사용하면 더 안정적
+          if (navigator.sendBeacon) {
+            const blob = new Blob([payload], { type: 'application/json' })
+            const headers: Record<string, string> = {}
+            if (token) {
+              // sendBeacon은 헤더를 직접 설정할 수 없으므로 fetch 사용
+              fetch(terminateUrl, {
+                method: 'POST',
+                body: payload,
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+                },
+                keepalive: true
+              }).catch(() => {
+                // 에러는 무시
+              })
+            } else {
+              navigator.sendBeacon(terminateUrl, blob)
+            }
+          } else {
+            // sendBeacon을 지원하지 않는 경우 fetch 사용
+            fetch(terminateUrl, {
+              method: 'POST',
+              body: payload,
+              headers: {
+                'Content-Type': 'application/json',
+                ...(token && { 'Authorization': `Bearer ${token}` })
+              },
+              keepalive: true
+            }).catch(() => {
+              // 에러는 무시
+            })
+          }
+
+          // localStorage 정리
+          localStorage.removeItem("active_lab_session")
+          localStorage.removeItem(`lab_session_${session.cveId}`)
         }
       } catch {
         localStorage.removeItem("active_lab_session")
       }
     }
 
+    // visibilitychange는 탭 전환 등에서도 발생하므로 pagehide와 함께 사용
+    const handleVisibilityChange = () => {
+      // 페이지가 숨겨지고 beforeunload가 발생했다면 VM 종료
+      if (document.visibilityState === 'hidden' && shouldTerminateVM) {
+        handlePageHide()
+      }
+    }
+
+    // 사용자가 취소를 눌렀을 때 플래그 리셋
+    const handleFocus = () => {
+      // 페이지가 다시 포커스를 받으면 사용자가 취소를 눌렀을 가능성이 높음
+      if (shouldTerminateVM && document.visibilityState === 'visible') {
+        shouldTerminateVM = false
+      }
+    }
+
     window.addEventListener("beforeunload", handleBeforeUnload)
+    window.addEventListener("pagehide", handlePageHide)
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+    window.addEventListener("focus", handleFocus)
 
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload)
+      window.removeEventListener("pagehide", handlePageHide)
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+      window.removeEventListener("focus", handleFocus)
     }
-  }, [])
+  }, [cveId])
 
   // Guacamole 공식 권장: iframe 자동 포커스 처리
   useEffect(() => {
@@ -732,6 +1056,22 @@ export default function LabStartPage({
           description="1시간 실습 시간이 모두 소진되었습니다. 홈 화면으로 이동합니다."
           onConfirm={handleTimeout}
           cancelText=""
+        />
+
+        <ConfirmDialog
+          open={showExitDialog}
+          onOpenChange={(open) => {
+            if (!open) {
+              handleCancelExit();
+            } else {
+              setShowExitDialog(open);
+            }
+          }}
+          title="실습 환경을 종료하시겠습니까?"
+          description="페이지를 나가면 실습 VM이 종료됩니다. 계속하시겠습니까?"
+          onConfirm={handleConfirmExit}
+          confirmText="종료하고 이동"
+          cancelText="취소"
         />
       </div>
     </AuthGuard>

@@ -21,6 +21,31 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// 401 에러 발생 시 자동 로그아웃 처리
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // 로그인 페이지에서는 리다이렉트하지 않음
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+      if (currentPath !== '/login') {
+        // localStorage에서 인증 정보 제거
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("auth");
+        
+        // 커스텀 이벤트 발생 (auth-context에서 감지)
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('auth:logout', { detail: { reason: '세션이 만료되었습니다. 다시 로그인해주세요.' } }));
+          
+          // 로그인 페이지로 리다이렉트
+          window.location.href = '/login?redirect=' + encodeURIComponent(currentPath);
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Report API용 인증 불필요 axios 인스턴스
 const apiNoAuth = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8082",

@@ -35,7 +35,6 @@ export function MypageSidebar({ activeView, onViewChange }: MypageSidebarProps) 
   const menuItems = [
     { id: "lab-history" as const, label: "실습한 CVE", icon: BookOpen },
     { id: "reports" as const, label: "작성한 보고서", icon: FileText },
-    { id: "ai-analysis" as const, label: "AI 분석 결과", icon: Brain },
     { id: "profile" as const, label: "정보 수정", icon: User },
   ]
 
@@ -73,6 +72,17 @@ export function MypageSidebar({ activeView, onViewChange }: MypageSidebarProps) 
               >
                 <Settings className="mr-2 h-4 w-4" />
                 관리자 콘솔
+              </Button>
+              <Button
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900",
+                  activeView === "ai-analysis" && "bg-blue-50 text-blue-600 font-medium hover:bg-blue-100 hover:text-blue-700"
+                )}
+                onClick={() => onViewChange("ai-analysis")}
+              >
+                <Brain className="mr-2 h-4 w-4" />
+                AI 분석 결과
               </Button>
             </>
           )}
