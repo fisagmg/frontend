@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { getMyProfile } from "./api"
 
@@ -71,6 +71,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth()
   }, [])
 
+  const logout = useCallback(() => {
+    setEmail(null)
+    setUserInfo(null)
+    setIsAuthed(false)
+    localStorage.removeItem("auth")
+    localStorage.removeItem("access_token")
+  }, [])
+
+  // 401 에러로 인한 자동 로그아웃 이벤트 감지
+  useEffect(() => {
+    const handleAuthLogout = (event: CustomEvent) => {
+      const reason = event.detail?.reason || '세션이 만료되었습니다.'
+      logout()
+      // 알림 표시
+      if (typeof window !== 'undefined' && window.alert) {
+        alert(reason)
+      }
+    }
+
+    window.addEventListener('auth:logout', handleAuthLogout as EventListener)
+    
+    return () => {
+      window.removeEventListener('auth:logout', handleAuthLogout as EventListener)
+    }
+  }, [logout])
+
   const login = (userEmail: string, userData?: UserInfo) => {
     setEmail(userEmail)
     setUserInfo(userData || null)
@@ -79,13 +105,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: userEmail,
       userInfo: userData 
     }))
-  }
-
-  const logout = () => {
-    setEmail(null)
-    setUserInfo(null)
-    setIsAuthed(false)
-    localStorage.removeItem("auth")
   }
 
   if (isLoading) {

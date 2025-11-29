@@ -1,8 +1,13 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { useAuth } from "@/lib/auth-context"
 
 export function Hero() {
+  const { isAuthed } = useAuth()
+  
   return (
     <div className="flex flex-col items-center justify-center text-center space-y-8 py-12 lg:py-20">
       <Badge variant="secondary" className="mb-2 bg-primary/10 text-primary hover:bg-primary/20 border-primary/20 px-3 py-1">
@@ -17,9 +22,11 @@ export function Hero() {
         <Button asChild size="lg" className="text-base px-8 h-12 font-semibold bg-white text-slate-950 hover:bg-white/90">
           <Link href="/learn">시작하기</Link>
         </Button>
-        <Button asChild size="lg" variant="outline" className="text-base px-8 h-12 border-white/20 text-white hover:bg-white/10 hover:text-white bg-transparent">
-          <Link href="/login">로그인</Link>
-        </Button>
+        {!isAuthed && (
+          <Button asChild size="lg" variant="outline" className="text-base px-8 h-12 border-white/20 text-white hover:bg-white/10 hover:text-white bg-transparent">
+            <Link href="/login">로그인</Link>
+          </Button>
+        )}
       </div>
     </div>
   )

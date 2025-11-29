@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { AuthGuard } from "@/lib/auth-context";
+import { AuthGuard, useAuth } from "@/lib/auth-context";
 import { MypageSidebar } from "@/components/mypage-sidebar";
 import { MypageLabHistory } from "@/components/mypage-lab-history";
 import { MypageReports } from "@/components/mypage-reports";
@@ -14,6 +14,7 @@ import { MypageAdminConsole } from "@/components/mypage-admin-console";
 export default function MypagePage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { isAdmin } = useAuth();
 
   const [activeView, setActiveView] = useState<
     "lab-history" | "reports" | "profile" | "admin-console" | "ai-analysis"
@@ -38,6 +39,14 @@ export default function MypagePage() {
   const timestamp = searchParams.get("timestamp");
 
   useEffect(() => {
+    // 관리자가 아니면 AI 분석 탭 접근 불가
+    if (!isAdmin) {
+      if (activeView === "ai-analysis") {
+        setActiveView("lab-history");
+      }
+      return;
+    }
+
     // 🔹 1) incidentId가 있으면 AI 탭 + 상세 화면
     if (initialIncidentId) {
       setActiveView("ai-analysis");
@@ -51,7 +60,7 @@ export default function MypagePage() {
       hasAnalyzed.current = true;
       startAnalysis();
     }
-  }, [searchParams, initialIncidentId, alarmName, instanceId, timestamp]);
+  }, [searchParams, initialIncidentId, alarmName, instanceId, timestamp, isAdmin, activeView]);
 
   const startAnalysis = async () => {
     if (!alarmName || !instanceId || !timestamp) return;
@@ -110,7 +119,10 @@ export default function MypagePage() {
             {activeView === "lab-history" && <MypageLabHistory />}
             {activeView === "reports" && <MypageReports />}
             {activeView === "profile" && <MypageProfile />}
-            {activeView === "ai-analysis" && (
+            {activeView === "admin-console" && (
+              <MypageAdminConsole onDetailViewChange={setIsAdminDetailView} />
+            )}
+            {activeView === "ai-analysis" && isAdmin && (
               <>
                 {analyzing && (
                   <div className="mb-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-center gap-3">
@@ -122,9 +134,6 @@ export default function MypagePage() {
                   initialIncidentId={analyzedIncidentId || initialIncidentId}
                 />
               </>
-            )}
-            {activeView === "admin-console" && (
-              <MypageAdminConsole onDetailViewChange={setIsAdminDetailView} />
             )}
           </div>
         </div>
