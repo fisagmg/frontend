@@ -85,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const reason = event.detail?.reason || '세션이 만료되었습니다.'
       logout()
       // 알림 표시
-      if (typeof window !== 'undefined' && window.alert) {
+      if (typeof window !== 'undefined') {
         alert(reason)
       }
     }
