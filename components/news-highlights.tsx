@@ -49,7 +49,7 @@ export function NewsHighlights() {
   const visibleItems = useMemo(() => items.slice(0, 6), [items])
 
   return (
-    <section className="w-full py-12">
+    <section className="w-full py-8">
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-2xl font-bold text-white tracking-tight">주요 보안 뉴스</h2>
         <Link href="/news" className="text-sm text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1 font-medium">

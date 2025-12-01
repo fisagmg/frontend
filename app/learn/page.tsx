@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import { CVECard } from "@/components/cve-card"
 import type { CVEItem } from "@/lib/mock-data"
@@ -42,15 +42,27 @@ function convertBackendCveToFrontend(backendCve: CveBackendResponse): CVEItem {
 
 export default function LearnPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { isAuthed } = useAuth()
   const [searchQuery, setSearchQuery] = useState("")
-  const [currentPage, setCurrentPage] = useState(1)
   const [isCompletedOpen, setIsCompletedOpen] = useState(true)
 
   const [yearFilter, setYearFilter] = useState<string>("all")
   const [osFilter, setOsFilter] = useState<string>("all")
   const [domainFilter, setDomainFilter] = useState<string>("all")
 
+  // URL 쿼리 파라미터에서 페이지 읽기
+  const [currentPage, setCurrentPage] = useState(() => {
+    const pageParam = searchParams?.get('page')
+    if (pageParam) {
+      const pageNum = parseInt(pageParam, 10)
+      if (!isNaN(pageNum) && pageNum > 0) {
+        return pageNum
+      }
+    }
+    return 1
+  })
+  
   // API 데이터 상태
   const [cveList, setCveList] = useState<CVEItem[]>([])
   const [progressData, setProgressData] = useState<{ completedCount?: number; totalCount: number } | null>(null)
@@ -135,7 +147,7 @@ export default function LearnPage() {
 
   // 클라이언트 사이드 필터링 (검색만)
   const filteredCVEs = useMemo(() => {
-    return cveList.filter((cve) => {
+    const filtered = cveList.filter((cve) => {
       const matchesSearch =
         cve.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
         cve.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -143,6 +155,33 @@ export default function LearnPage() {
         cve.domain.toLowerCase().includes(searchQuery.toLowerCase())
 
       return matchesSearch
+    })
+
+    // 정렬: 년도 내림차순 → 같은 년도 내에서는 ID 숫자 내림차순
+    return filtered.sort((a, b) => {
+      // CVE ID에서 년도와 ID 숫자 추출
+      // 예: "CVE-2024-53677" -> year: 2024, idNum: 53677
+      const parseCveId = (cveId: string) => {
+        const match = cveId.match(/CVE-(\d{4})-(\d+)/)
+        if (match) {
+          return {
+            year: parseInt(match[1], 10),
+            idNum: parseInt(match[2], 10)
+          }
+        }
+        return { year: 0, idNum: 0 }
+      }
+
+      const aParsed = parseCveId(a.id)
+      const bParsed = parseCveId(b.id)
+
+      // 1. 년도 내림차순 (최신년도 먼저)
+      if (aParsed.year !== bParsed.year) {
+        return bParsed.year - aParsed.year
+      }
+
+      // 2. 같은 년도 내에서는 ID 숫자 내림차순 (큰 숫자 먼저)
+      return bParsed.idNum - aParsed.idNum
     })
   }, [cveList, searchQuery])
 
@@ -154,6 +193,18 @@ export default function LearnPage() {
   const circumference = 2 * Math.PI * radius
   const percentage = stats.total > 0 ? (stats.completed / stats.total) * 100 : 0
   const strokeDashoffset = circumference - (percentage / 100) * circumference
+
+  // 페이지 변경 시 URL 업데이트
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (currentPage > 1) {
+      params.set('page', currentPage.toString())
+    } else {
+      params.delete('page')
+    }
+    const newUrl = params.toString() ? `?${params.toString()}` : ''
+    window.history.replaceState({}, '', `/learn${newUrl}`)
+  }, [currentPage])
 
   // 로딩 중이면 로딩 표시
   if (isLoading) {

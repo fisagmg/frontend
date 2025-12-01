@@ -21,7 +21,7 @@ export function Footer() {
               개인정보처리방침
             </Link>
           </div>
-          <p className="text-xs text-muted-foreground/50">© CVE LabHub. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground/50">© CVExpert. All rights reserved.</p>
         </div>
       </div>
     </footer>
