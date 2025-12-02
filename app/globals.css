@@ -145,3 +145,39 @@
     scrollbar-color: #2a3a52 transparent;
   }
 }
+
+/* Dark styled table (custom) */
+.dark-table table,
+.dark-table table[data-slot="table"] {
+  background: linear-gradient(90deg, #0d1123, #1b1e44);
+  color: white;
+  border-collapse: collapse;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.dark-table th,
+.dark-table td,
+.dark-table th[data-slot="table-head"],
+.dark-table td[data-slot="table-cell"] {
+  background-color: rgba(255,255,255,0.03);
+  color: white !important;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding: 14px 16px;
+}
+
+.dark-table thead th,
+.dark-table thead th[data-slot="table-head"] {
+  background: rgba(255,255,255,0.06);
+  font-weight: 600;
+  color: white !important;
+}
+
+.dark-table tr:hover td {
+  background-color: rgba(255,255,255,0.12);
+}
+
+.dark-table tr:last-child td {
+  border-bottom: none;
+}

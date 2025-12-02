@@ -1,11 +1,14 @@
-// app/learn/[cveId]/page.tsx
+"use client"
+
+import { useState, useEffect, use } from "react"
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SeverityBadge } from "@/components/severity-badge";
-import { ExternalLink, Target, Code2 } from "lucide-react";
+import { ExternalLink, Target, Code2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 
 // CVE 목록과 메타데이터
 const cveData: Record<string, any> = {
@@ -247,42 +250,81 @@ const cveData: Record<string, any> = {
     target: ["모든 RetrievalQA 기반 LangChain 0.x 버전"],
     attackComplexity: "Low",
   },
+  "CVE-2021-44228": {
+    id: "CVE-2021-44228",
+    title: "Apache Log4j 원격 코드 실행 취약점 (Log4Shell)",
+    cvssScore: 10.0,
+    severity: "Critical",
+    summary:
+      "Apache Log4j의 JNDI 조회 기능을 통한 원격 코드 실행 취약점",
+    tags: ["RCE", "Log4j", "JNDI", "Log4Shell", "Java"],
+    publishedDate: "2021-12-09",
+    nvdUrl: "https://nvd.nist.gov/vuln/detail/CVE-2021-44228",
+    target: ["Apache Log4j 2.0-beta9 ~ 2.14.1"],
+    attackComplexity: "Low",
+  },
 };
 
-export async function generateStaticParams() {
-  return Object.keys(cveData).map((cveId) => ({
-    cveId: cveId,
-  }));
-}
-
-export default async function CVEDetailPage({
+export default function CVEDetailPage({
   params,
 }: {
   params: Promise<{ cveId: string }>;
 }) {
-  const { cveId } = await params;
+  const resolvedParams = use(params)
+  let { cveId } = resolvedParams
+  // URL 디코딩 처리 (특수문자 & 처리)
+  cveId = decodeURIComponent(cveId)
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const fromPage = searchParams?.get('fromPage')
 
-  const metadata = cveData[cveId];
+  const metadata = cveData[cveId]
 
   if (!metadata) {
-    notFound();
+    notFound()
   }
 
-  // 동적으로 MDX 파일 불러오기
-  let MDXContent;
+  const handleBack = () => {
+    router.push(`/learn${fromPage ? `?page=${fromPage}` : ''}`)
+  }
 
-  try {
-    // @ts-ignore
-    const mdxModule = await import(`./content/${cveId}.mdx`);
-    MDXContent = mdxModule.default;
-  } catch (error) {
-    console.error("MDX load error:", error);
-    notFound();
+  // 동적으로 MDX 파일 불러오기 (클라이언트 컴포넌트 방식)
+  const [MDXContent, setMDXContent] = useState<any>(null)
+
+  useEffect(() => {
+    import(`./content/${cveId}.mdx`)
+      .then((module) => {
+        setMDXContent(() => module.default)
+      })
+      .catch((error) => {
+        console.error("MDX load error:", error)
+        notFound()
+      })
+  }, [cveId])
+
+  if (!MDXContent) {
+    return (
+      <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
+        <p className="text-zinc-500">로딩 중...</p>
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen bg-zinc-50">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        {/* 뒤로가기 버튼 추가 */}
+        <div className="mb-6">
+          <Button 
+            onClick={handleBack}
+            variant="ghost" 
+            className="gap-2 text-zinc-600 hover:text-zinc-900"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            다시 학습 페이지
+          </Button>
+        </div>
+        
         <div className="flex gap-8">
           {/* Main Content */}
           <div className="flex-1 min-w-0">
@@ -411,10 +453,10 @@ export default async function CVEDetailPage({
                   prose-th:!border 
                   prose-th:!border-zinc-300 
                   prose-th:!bg-zinc-50 
-                  prose-th:!text-zinc-900 
+                  prose-th:!text-white 
                   prose-td:!border 
                   prose-td:!border-zinc-200 
-                  prose-td:!text-zinc-800
+                  prose-td:!text-white
                   [&_h1]:!text-zinc-900
                   [&_h2]:!text-zinc-900
                   [&_h3]:!text-zinc-900

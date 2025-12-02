@@ -1,9 +1,18 @@
 // components/lab-guide-panel.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Copy, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Table as TableComponent,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
 interface LabGuidePanelProps {
   cveId: string;
@@ -59,6 +68,27 @@ export function LabGuidePanel({ cveId, metadata }: LabGuidePanelProps) {
   // MDX용 커스텀 컴포넌트 - 회색 배경
   const components = {
     CodeBlock,
+    // shadcn/ui Table 컴포넌트 추가
+    Table: ({ children, className, ...props }: any) => (
+      <div className="dark-table my-8">
+        <TableComponent className={cn("w-full", className)} {...props}>
+          {children}
+        </TableComponent>
+      </div>
+    ),
+    TableHeader: (props: any) => <TableHeader {...props} />,
+    TableBody: (props: any) => <TableBody {...props} />,
+    TableRow: (props: any) => <TableRow {...props} />,
+    TableHead: ({ children, className, ...props }: any) => (
+      <TableHead className={cn("!text-white", className)} {...props}>
+        {children}
+      </TableHead>
+    ),
+    TableCell: ({ children, className, ...props }: any) => (
+      <TableCell className={cn("!text-white", className)} {...props}>
+        {children}
+      </TableCell>
+    ),
     pre: ({ children, ...props }: any) => (
       <pre
         {...props}

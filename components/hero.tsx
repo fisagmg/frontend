@@ -9,7 +9,7 @@ export function Hero() {
   const { isAuthed } = useAuth()
   
   return (
-    <div className="flex flex-col items-center justify-center text-center space-y-8 py-12 lg:py-20">
+    <div className="flex flex-col items-center justify-center text-center space-y-8 py-8 lg:py-12">
       <Badge variant="secondary" className="mb-2 bg-primary/10 text-primary hover:bg-primary/20 border-primary/20 px-3 py-1">
         보안 취약점 학습 플랫폼
       </Badge>

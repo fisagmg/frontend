@@ -159,18 +159,19 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       <strong className="font-semibold text-foreground">{children}</strong>
     ),
 
-    code: ({ children }: { children?: ReactNode }) => (
-      <code className="font-mono text-sm text-black px-1">
+    code: ({ children, ...props }: any) => (
+      <code {...props} className="text-black px-2 py-1 rounded font-mono text-xs">
         {children}
       </code>
     ),
 
-    pre: ({ children }: { children?: ReactNode }) => (
-      <div className="my-6 relative group">
-        <pre className="bg-transparent text-black p-6 rounded-lg overflow-x-auto">
-          {children}
-        </pre>
-      </div>
+    pre: ({ children, ...props }: any) => (
+      <pre
+        {...props}
+        className="bg-transparent text-black p-3 text-xs overflow-x-auto my-3 rounded-lg"
+      >
+        {children}
+      </pre>
     ),
 
     blockquote: ({ children }: { children?: ReactNode }) => (
@@ -207,7 +208,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     ),
 
     th: ({ children }: { children?: ReactNode }) => (
-      <th className="px-6 py-4 text-left text-sm font-bold text-slate-900 dark:text-slate-100 border-r border-border/50 last:border-r-0 whitespace-nowrap">
+      <th className="px-6 py-4 text-left text-sm font-bold text-white border-r border-border/50 last:border-r-0 whitespace-nowrap">
         {children}
       </th>
     ),
@@ -219,13 +220,13 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       const isIP = /^\d+\.\d+\.\d+\.\d+$/.test(text.trim());
 
       return (
-        <td className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300 border-r border-border/30 last:border-r-0">
+        <td className="px-6 py-4 text-sm text-white border-r border-border/30 last:border-r-0">
           {isIP ? (
             <code className="inline-flex items-center px-3 py-1.5 rounded-md font-mono text-xs font-medium bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-400 border border-slate-200 dark:border-slate-700">
               {children}
             </code>
           ) : (
-            <span className="font-medium">{children}</span>
+            <span className="font-medium text-white">{children}</span>
           )}
         </td>
       );
