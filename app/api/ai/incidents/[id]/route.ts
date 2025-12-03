@@ -1,12 +1,10 @@
 // app/api/ai/incidents/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
-const BASE_URL = process.env.NEXT_PUBLIC_LAMBDA_ANALYSIS_URL;
+const BASE_URL = process.env.LAMBDA_ANALYSIS_URL;
 
 if (!BASE_URL) {
-  console.warn(
-    "[AI_INCIDENT_DETAIL] NEXT_PUBLIC_LAMBDA_ANALYSIS_URL env is not set"
-  );
+  console.warn("[AI_INCIDENT_DETAIL] LAMBDA_ANALYSIS_URL env is not set");
 }
 
 export async function GET(
@@ -14,6 +12,8 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    console.log("[AI_INCIDENT_DETAIL] BASE_URL:", BASE_URL);
+
     if (!BASE_URL) {
       return NextResponse.json(
         { status: "error", message: "Lambda base URL not configured" },
@@ -23,6 +23,10 @@ export async function GET(
 
     const { id } = await context.params;
 
+    console.log(
+      `[AI_INCIDENT_DETAIL] Fetching from: ${BASE_URL}/incidents/${id}`
+    );
+
     const res = await fetch(`${BASE_URL}/incidents/${id}`, {
       method: "GET",
       headers: {
@@ -30,6 +34,8 @@ export async function GET(
       },
       cache: "no-store",
     });
+
+    console.log("[AI_INCIDENT_DETAIL] Response status:", res.status);
 
     if (res.status === 404) {
       return NextResponse.json(
