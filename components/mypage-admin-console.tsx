@@ -118,19 +118,21 @@ export function MypageAdminConsole({
       <CardContent>
         <div className="mb-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400/70" />
+
             <Input
               placeholder="이메일 또는 CVE 이름으로 검색..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="
-    pl-10
-    !bg-white           // ✅ 배경 흰색으로 강제
-    !border-zinc-200    // (선택) 테두리도 연한 회색으로
-    text-zinc-900
-    focus-visible:ring-blue-500
-    placeholder:text-zinc-400
-  "
+                  pl-10
+                  !bg-white
+                  !border-zinc-200
+              -   text-zinc-900
+              +   !text-zinc-900
+                  focus-visible:ring-blue-500
+                  placeholder:text-zinc-400
+                "
             />
           </div>
         </div>
@@ -147,22 +149,22 @@ export function MypageAdminConsole({
           </div>
         ) : (
           <div className="rounded-lg border border-zinc-200 overflow-hidden">
-            <Table>
+            <Table className="!text-zinc-900">
               <TableHeader>
                 <TableRow className="bg-zinc-50 hover:bg-zinc-50 border-b border-zinc-200">
-                  <TableHead className="font-semibold text-zinc-700">
+                  <TableHead className="font-semibold !text-zinc-700">
                     Lab UUID
                   </TableHead>
-                  <TableHead className="font-semibold text-zinc-700">
+                  <TableHead className="font-semibold !text-zinc-700">
                     CVE 이름
                   </TableHead>
-                  <TableHead className="font-semibold text-zinc-700">
+                  <TableHead className="font-semibold !text-zinc-700">
                     사용자 이메일
                   </TableHead>
-                  <TableHead className="font-semibold text-zinc-700">
+                  <TableHead className="font-semibold !text-zinc-700">
                     생성 시간
                   </TableHead>
-                  <TableHead className="font-semibold text-right text-zinc-700">
+                  <TableHead className="font-semibold text-right !text-zinc-700">
                     작업
                   </TableHead>
                 </TableRow>
@@ -174,16 +176,16 @@ export function MypageAdminConsole({
                     className="cursor-pointer hover:bg-zinc-50 transition-colors border-b border-zinc-100"
                     onClick={() => handleLabSelect(lab.labUuid)}
                   >
-                    <TableCell className="font-mono text-sm text-zinc-600">
+                    <TableCell className="font-mono text-sm !text-zinc-600">
                       {lab.labUuid.substring(0, 12)}...
                     </TableCell>
-                    <TableCell className="font-medium text-zinc-900">
+                    <TableCell className="font-medium !text-zinc-900">
                       {lab.cveName}
                     </TableCell>
-                    <TableCell className="text-zinc-700">
+                    <TableCell className="!text-zinc-700">
                       {lab.userEmail}
                     </TableCell>
-                    <TableCell className="text-zinc-500">
+                    <TableCell className="!text-zinc-500">
                       {formatDateTime(lab.createdAt)}
                     </TableCell>
                     <TableCell className="text-right">
