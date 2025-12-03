@@ -723,7 +723,7 @@ export async function getIncidents(
   limit: number = 100
 ): Promise<IncidentResponse[]> {
   try {
-    const response = await fetch(`${AI_API_URL}/incidents?limit=${limit}`, {
+    const response = await fetch(`/api/ai/incidents?limit=${limit}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -750,7 +750,7 @@ export async function getIncidentById(
   incidentId: string
 ): Promise<IncidentResponse> {
   try {
-    const response = await fetch(`${AI_API_URL}/incidents/${incidentId}`, {
+    const response = await fetch(`/api/ai/incidents/${incidentId}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
