@@ -1,16 +1,17 @@
 // app/api/ai/incidents/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
-const BASE_URL = process.env.NEXT_PUBLIC_LAMBDA_ANALYSIS_URL;
+// ✅ 서버 사이드 환경변수 (런타임에 K8s에서 주입됨)
+const BASE_URL = process.env.LAMBDA_ANALYSIS_URL;
 
 if (!BASE_URL) {
-  console.warn(
-    "[AI_INCIDENTS_LIST] NEXT_PUBLIC_LAMBDA_ANALYSIS_URL env is not set"
-  );
+  console.warn("[AI_INCIDENTS_LIST] LAMBDA_ANALYSIS_URL env is not set");
 }
 
 export async function GET(req: NextRequest) {
   try {
+    console.log("[AI_INCIDENTS_LIST] BASE_URL:", BASE_URL);
+
     if (!BASE_URL) {
       return NextResponse.json(
         { status: "error", message: "Lambda base URL not configured" },
@@ -21,14 +22,19 @@ export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const limit = searchParams.get("limit") || "100";
 
+    console.log(
+      `[AI_INCIDENTS_LIST] Fetching from: ${BASE_URL}/incidents?limit=${limit}`
+    );
+
     const res = await fetch(`${BASE_URL}/incidents?limit=${limit}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        // ❌ Authorization 헤더를 절대 추가하지 않음
       },
       cache: "no-store",
     });
+
+    console.log("[AI_INCIDENTS_LIST] Response status:", res.status);
 
     if (!res.ok) {
       const text = await res.text();
@@ -44,6 +50,9 @@ export async function GET(req: NextRequest) {
     }
 
     const data = await res.json();
+    console.log(
+      `[AI_INCIDENTS_LIST] Successfully fetched ${data.length} incidents`
+    );
     return NextResponse.json(data);
   } catch (err: any) {
     console.error("[AI_INCIDENTS_LIST] Route error:", err);
