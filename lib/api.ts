@@ -789,7 +789,8 @@ export async function analyzeAlarm(
       timestamp: timestamp,
     });
 
-    const response = await fetch(`${AI_API_URL}/?${params.toString()}`, {
+    // ✅ 변경: Lambda 직접 호출 → Next.js API Route 경유
+    const response = await fetch(`/api/ai/analyze?${params.toString()}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
