@@ -668,13 +668,8 @@ export async function getAdminLabMetrics(
 }
 
 // ====================================
-// AI Analysis API (Lambda)
+// AI Analysis API (Lambda via Next.js API Routes)
 // ====================================
-
-// AI Analysis Lambda URL - 환경 변수 이름 맞춤
-const AI_API_URL =
-  process.env.NEXT_PUBLIC_LAMBDA_ANALYSIS_URL ||
-  "https://jbkhpqsb6ofrnxjpeorik3sate0kgtth.lambda-url.ap-northeast-2.on.aws";
 
 export interface IncidentResponse {
   id: number;
@@ -685,12 +680,17 @@ export interface IncidentResponse {
   namespace: string;
   region: string;
   severity: string;
-  summary: string;
-  root_cause: string;
-  recommendations: string;
-  evidence: string;
-  analysis_completed_at: string;
-  created_at: string;
+  alarm_timestamp: string;
+  analyzed_at: string;
+  error_summary?: string;
+  root_cause?: string;
+  resolution?: string;
+  evidence?: any;
+  affected_services?: any;
+  estimated_recovery_time?: string | null;
+  raw_alarm?: any;
+  raw_metrics?: any;
+  raw_logs?: any;
 }
 
 export interface AnalysisResponse {
@@ -723,10 +723,17 @@ export async function getIncidents(
   limit: number = 100
 ): Promise<IncidentResponse[]> {
   try {
+    // ✅ 토큰이 자동으로 추가되는 axios 인스턴스 사용
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("access_token")
+        : null;
+
     const response = await fetch(`/api/ai/incidents?limit=${limit}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
       cache: "no-store",
     });
@@ -750,10 +757,16 @@ export async function getIncidentById(
   incidentId: string
 ): Promise<IncidentResponse> {
   try {
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("access_token")
+        : null;
+
     const response = await fetch(`/api/ai/incidents/${incidentId}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
     });
 
@@ -789,7 +802,6 @@ export async function analyzeAlarm(
       timestamp: timestamp,
     });
 
-    // ✅ 변경: Lambda 직접 호출 → Next.js API Route 경유
     const response = await fetch(`/api/ai/analyze?${params.toString()}`, {
       method: "GET",
       headers: {
