@@ -7,6 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn, formatToKST } from "@/lib/utils";
 import {
+  getIncidents,
+  getIncidentById,
+  type IncidentResponse,
+} from "@/lib/api";
+import {
   ArrowLeft,
   AlertCircle,
   Clock,
@@ -16,42 +21,17 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-type IncidentSummary = {
-  id: number;
-  alarm_name: string;
-  instance_id: string;
-  cve_id: string | null;
-  metric_name: string;
-  namespace: string;
-  region: string;
-  severity: string;
-  alarm_timestamp: string;
-  analyzed_at: string;
-};
-
-type IncidentDetail = IncidentSummary & {
-  error_summary: string;
-  root_cause: string;
-  resolution: string;
-  evidence: any;
-  affected_services: any;
-  estimated_recovery_time: string | null;
-  raw_alarm: any;
-  raw_metrics: any;
-  raw_logs: any;
-};
-
 interface MypageAiAnalysisProps {
   initialIncidentId?: number;
 }
 
 export function MypageAiAnalysis({ initialIncidentId }: MypageAiAnalysisProps) {
-  const [incidents, setIncidents] = useState<IncidentSummary[]>([]);
+  const [incidents, setIncidents] = useState<IncidentResponse[]>([]);
   const [selectedId, setSelectedId] = useState<number | undefined>(
     initialIncidentId
   );
   const [selectedIncident, setSelectedIncident] =
-    useState<IncidentDetail | null>(null);
+    useState<IncidentResponse | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "detail">(
     initialIncidentId ? "detail" : "list"
   );
@@ -71,18 +51,14 @@ export function MypageAiAnalysis({ initialIncidentId }: MypageAiAnalysisProps) {
     }
   }, [initialIncidentId]);
 
-  // 리스트 가져오기 (기존과 동일)
+  // ✅ 리스트 가져오기 (getIncidents 사용)
   useEffect(() => {
     const fetchIncidents = async () => {
       try {
         setLoadingList(true);
         setError(null);
 
-        const res = await fetch("/api/ai/incidents");
-        if (!res.ok) {
-          throw new Error(`Failed to load incidents: ${res.status}`);
-        }
-        const data: IncidentSummary[] = await res.json();
+        const data = await getIncidents(100);
         setIncidents(data);
       } catch (e: any) {
         setError(e.message ?? "AI 분석 내역을 불러오지 못했습니다.");
@@ -94,7 +70,7 @@ export function MypageAiAnalysis({ initialIncidentId }: MypageAiAnalysisProps) {
     fetchIncidents();
   }, []);
 
-  // 선택된 incident 상세 가져오기 (기존과 동일)
+  // ✅ 선택된 incident 상세 가져오기 (getIncidentById 사용)
   useEffect(() => {
     if (!selectedId || viewMode !== "detail") {
       setSelectedIncident(null);
@@ -106,11 +82,7 @@ export function MypageAiAnalysis({ initialIncidentId }: MypageAiAnalysisProps) {
         setLoadingDetail(true);
         setError(null);
 
-        const res = await fetch(`/api/ai/incidents/${selectedId}`);
-        if (!res.ok) {
-          throw new Error(`Failed to load incident detail: ${res.status}`);
-        }
-        const data: IncidentDetail = await res.json();
+        const data = await getIncidentById(String(selectedId));
         setSelectedIncident(data);
       } catch (e: any) {
         setError(e.message ?? "AI 분석 상세 정보를 불러오지 못했습니다.");
@@ -130,7 +102,6 @@ export function MypageAiAnalysis({ initialIncidentId }: MypageAiAnalysisProps) {
   const handleBackToList = () => {
     setViewMode("list");
     setSelectedId(undefined);
-    // ✅ URL에서 incidentId 파라미터 제거
     window.history.replaceState({}, "", "/mypage");
   };
 
@@ -149,7 +120,6 @@ export function MypageAiAnalysis({ initialIncidentId }: MypageAiAnalysisProps) {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    // 페이지 변경 시 스크롤을 테이블 상단으로
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -158,7 +128,9 @@ export function MypageAiAnalysis({ initialIncidentId }: MypageAiAnalysisProps) {
     return (
       <div className="flex flex-col gap-4">
         <div>
-          <h2 className="text-2xl font-bold mb-2 text-zinc-900">AI 분석 결과</h2>
+          <h2 className="text-2xl font-bold mb-2 text-zinc-900">
+            AI 분석 결과
+          </h2>
           <p className="text-sm text-zinc-500">
             CloudWatch 알람을 기반으로 AI가 분석한 장애 내역입니다.
           </p>
@@ -309,7 +281,6 @@ export function MypageAiAnalysis({ initialIncidentId }: MypageAiAnalysisProps) {
                     <div className="flex items-center gap-1">
                       {Array.from({ length: totalPages }, (_, i) => i + 1).map(
                         (page) => {
-                          // 현재 페이지 주변만 표시 (현재 페이지 ± 2)
                           if (
                             page === 1 ||
                             page === totalPages ||
@@ -325,7 +296,7 @@ export function MypageAiAnalysis({ initialIncidentId }: MypageAiAnalysisProps) {
                                 onClick={() => handlePageChange(page)}
                                 className={cn(
                                   "w-9 h-9 p-0",
-                                  currentPage === page 
+                                  currentPage === page
                                     ? "bg-zinc-900 text-white hover:bg-zinc-800"
                                     : "bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50"
                                 )}
@@ -338,10 +309,7 @@ export function MypageAiAnalysis({ initialIncidentId }: MypageAiAnalysisProps) {
                             page === currentPage + 3
                           ) {
                             return (
-                              <span
-                                key={page}
-                                className="px-2 text-zinc-400"
-                              >
+                              <span key={page} className="px-2 text-zinc-400">
                                 ...
                               </span>
                             );
@@ -499,7 +467,11 @@ export function MypageAiAnalysis({ initialIncidentId }: MypageAiAnalysisProps) {
                   <div className="flex flex-wrap gap-2">
                     {selectedIncident.affected_services.map(
                       (svc: any, idx: number) => (
-                        <Badge key={idx} variant="secondary" className="text-sm bg-zinc-100 text-zinc-700 hover:bg-zinc-200">
+                        <Badge
+                          key={idx}
+                          variant="secondary"
+                          className="text-sm bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
+                        >
                           {String(svc)}
                         </Badge>
                       )
