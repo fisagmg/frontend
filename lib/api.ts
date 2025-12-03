@@ -668,7 +668,7 @@ export async function getAdminLabMetrics(
 }
 
 // ====================================
-// AI Analysis API (Lambda via Next.js API Routes)
+// AI Analysis API (Lambda 직접 호출)
 // ====================================
 
 export interface IncidentResponse {
@@ -716,6 +716,22 @@ export interface AnalysisResponse {
 }
 
 /**
+ * Lambda / MCP 베이스 URL (브라우저에서 직접 호출용)
+ *
+ * 예: NEXT_PUBLIC_LAMBDA_ANALYSIS_URL=https://mcp.cvexpert.org
+ */
+function getLambdaBaseUrl(): string {
+  const base = process.env.NEXT_PUBLIC_LAMBDA_ANALYSIS_URL;
+  if (!base) {
+    throw new Error(
+      "환경변수 NEXT_PUBLIC_LAMBDA_ANALYSIS_URL 가 설정되어 있지 않습니다"
+    );
+  }
+  // 끝에 / 붙어있으면 제거
+  return base.replace(/\/$/, "");
+}
+
+/**
  * Incident 목록 조회
  * @param limit 조회할 개수 (기본 100)
  */
@@ -723,17 +739,12 @@ export async function getIncidents(
   limit: number = 100
 ): Promise<IncidentResponse[]> {
   try {
-    // ✅ 토큰이 자동으로 추가되는 axios 인스턴스 사용
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("access_token")
-        : null;
+    const base = getLambdaBaseUrl();
 
-    const response = await fetch(`/api/ai/incidents?limit=${limit}`, {
+    const response = await fetch(`${base}/incidents?limit=${limit}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        ...(token && { Authorization: `Bearer ${token}` }),
       },
       cache: "no-store",
     });
@@ -757,17 +768,14 @@ export async function getIncidentById(
   incidentId: string
 ): Promise<IncidentResponse> {
   try {
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("access_token")
-        : null;
+    const base = getLambdaBaseUrl();
 
-    const response = await fetch(`/api/ai/incidents/${incidentId}`, {
+    const response = await fetch(`${base}/incidents/${incidentId}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        ...(token && { Authorization: `Bearer ${token}` }),
       },
+      cache: "no-store",
     });
 
     if (!response.ok) {
@@ -786,6 +794,7 @@ export async function getIncidentById(
 
 /**
  * 알람 분석 요청
+ * (기존 Next API: BASE_URL /?alarm_name=... 형식 그대로 사용)
  * @param alarmName 알람 이름
  * @param instanceId 인스턴스 ID
  * @param timestamp 타임스탬프
@@ -796,13 +805,16 @@ export async function analyzeAlarm(
   timestamp: string
 ): Promise<AnalysisResponse> {
   try {
+    const base = getLambdaBaseUrl();
+
     const params = new URLSearchParams({
       alarm_name: alarmName,
       instance_id: instanceId,
       timestamp: timestamp,
     });
 
-    const response = await fetch(`/api/ai/analyze?${params.toString()}`, {
+    // 주의: 기존 app/api/ai/analyze/route.ts 에서도 `${BASE_URL}/?${params}` 형식이었음
+    const response = await fetch(`${base}/?${params.toString()}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
