@@ -1,26 +1,30 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Search } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { useState } from "react";
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface SearchBarProps {
-  onSearch: (query: string) => void
-  placeholder?: string
-  className?: string
+  onSearch: (query: string) => void;
+  placeholder?: string;
+  className?: string;
 }
 
-export function SearchBar({ onSearch, placeholder = "검색...", className }: SearchBarProps) {
-  const [query, setQuery] = useState("")
+export function SearchBar({
+  onSearch,
+  placeholder = "검색...",
+  className,
+}: SearchBarProps) {
+  const [query, setQuery] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSearch(query)
-  }
+    e.preventDefault();
+    onSearch(query);
+  };
 
   return (
     <form onSubmit={handleSubmit} className="flex gap-2">
@@ -32,12 +36,19 @@ export function SearchBar({ onSearch, placeholder = "검색...", className }: Se
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className={cn(
-            "pl-9 !bg-white !border-none shadow-sm !text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-0",
+            // 기본 값 (라이트 테마용)
+            "pl-9 bg-white border-none shadow-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-0",
+            // 페이지에서 전달한 className으로 덮어쓰기 가능
             className
           )}
         />
       </div>
-      <Button type="submit" className="h-9 px-4 rounded-md shadow-sm bg-white text-zinc-900 border border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900">검색</Button>
+      <Button
+        type="submit"
+        className="h-9 px-4 rounded-md shadow-sm bg-white text-zinc-900 border border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
+      >
+        검색
+      </Button>
     </form>
-  )
+  );
 }
