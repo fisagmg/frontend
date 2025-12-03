@@ -103,7 +103,7 @@ export default function MypagePage() {
           className={
             isAdminDetailView
               ? "min-h-screen"
-              : "mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8"
+              : "mx-auto w-full max-w-[1400px] px-4 py-12 sm:px-6 lg:px-8"
           }
         >
           {!isAdminDetailView && (

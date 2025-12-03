@@ -25,6 +25,18 @@ interface MypageAiAnalysisProps {
   initialIncidentId?: number;
 }
 
+// ✅ 시간 포맷 함수 추가 (초 제거, 더 깔끔한 포맷)
+const formatDateTime = (dateString: string) => {
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${year}.${month}.${day} ${hours}:${minutes}`;
+};
+
 export function MypageAiAnalysis({ initialIncidentId }: MypageAiAnalysisProps) {
   const [incidents, setIncidents] = useState<IncidentResponse[]>([]);
   const [selectedId, setSelectedId] = useState<number | undefined>(
@@ -105,6 +117,32 @@ export function MypageAiAnalysis({ initialIncidentId }: MypageAiAnalysisProps) {
     window.history.replaceState({}, "", "/mypage");
   };
 
+  const formatInstanceLabel = (id: string) => {
+    if (!id) return "Unknown";
+
+    // session-으로 시작하면 lab-으로 prefix 바꿔주고, 너무 길면 앞부분만
+    if (id.startsWith("session-")) {
+      const raw = id.replace(/^session-/, "");
+      const short = raw.slice(0, 8); // 필요하면 길이 조절
+      return `lab-${short}`;
+    }
+
+    // 그 외에는 원래 값 그대로 (또는 다른 규칙 추가 가능)
+    return id;
+  };
+
+  const formatAlarmName = (alarmName: string) => {
+    if (!alarmName) return "";
+
+    // cvexpert-AppCrashes-CVE-1234-xxxx → cvexpert-AppCrashes
+    const parts = alarmName.split("-");
+    if (parts.length >= 2) {
+      return `${parts[0]}-${parts[1]}`;
+    }
+
+    return alarmName;
+  };
+
   const severityColor: Record<string, string> = {
     Critical: "bg-red-500/10 text-red-500 border-red-500/20",
     High: "bg-orange-500/10 text-orange-500 border-orange-500/20",
@@ -170,75 +208,92 @@ export function MypageAiAnalysis({ initialIncidentId }: MypageAiAnalysisProps) {
           {incidents.length > 0 && (
             <>
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full table-fixed text-sm">
+                  <colgroup>
+                    <col className="w-16" /> {/* 번호 */}
+                    <col className="w-[20%]" /> {/* 알람명 - 좀 넓게 */}
+                    <col className="w-[15%]" /> {/* 인스턴스 */}
+                    <col className="w-[20%]" /> {/* 네임스페이스 */}
+                    <col className="w-20" /> {/* 심각도 */}
+                    <col className="w-[12%]" /> {/* 알람발생 */}
+                    <col className="w-[12%]" /> {/* 분석완료 */}
+                  </colgroup>
+
                   <thead className="bg-zinc-50">
                     <tr className="border-b border-zinc-200">
-                      <th className="px-6 py-4 text-left text-sm font-semibold w-16 text-zinc-700">
+                      <th className="px-3 py-4 text-center text-xs font-semibold text-zinc-600 whitespace-nowrap">
                         번호
                       </th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-700">
+                      <th className="px-4 py-4 text-left text-xs font-semibold text-zinc-600">
                         알람명
                       </th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-700">
+                      <th className="px-4 py-4 text-left text-xs font-semibold text-zinc-600">
                         인스턴스
                       </th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-700">
-                        메트릭
+                      <th className="px-4 py-4 text-left text-xs font-semibold text-zinc-600">
+                        네임스페이스
                       </th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-700">
+                      <th className="px-3 py-4 text-center text-xs font-semibold text-zinc-600 whitespace-nowrap">
                         심각도
                       </th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-700">
-                        알람 발생 시각
+                      <th className="px-4 py-4 text-left text-xs font-semibold text-zinc-600 whitespace-nowrap">
+                        알람발생
                       </th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-700">
-                        분석 시각
+                      <th className="px-4 py-4 text-left text-xs font-semibold text-zinc-600 whitespace-nowrap">
+                        분석완료
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-200">
+
+                  <tbody className="divide-y divide-zinc-100">
                     {currentIncidents.map((item, index) => (
                       <tr
                         key={item.id}
-                        className="cursor-pointer hover:bg-zinc-50 transition-colors"
+                        className="cursor-pointer hover:bg-zinc-50/80 transition-colors"
                         onClick={() => handleSelectIncident(item.id)}
                       >
-                        <td className="px-6 py-4 text-sm text-zinc-500">
+                        <td className="px-3 py-3 text-xs text-zinc-400 text-center">
                           {startIndex + index + 1}
                         </td>
-                        <td className="px-6 py-4">
-                          <div
-                            className="font-medium text-sm text-zinc-900"
-                            title={item.alarm_name}
-                          >
-                            {item.alarm_name}
-                          </div>
-                          {item.cve_id && (
-                            <div className="text-xs text-zinc-500 mt-1">
-                              {item.cve_id}
+
+                        {/* ✅ 알람명: min-w-0 + max-w + truncate */}
+                        <td className="px-4 py-3 align-top">
+                          <div className="flex flex-col min-w-0 max-w-[420px]">
+                            <div
+                              className="font-medium text-sm text-zinc-900 truncate"
+                              title={item.alarm_name}
+                            >
+                              {formatAlarmName(item.alarm_name)}
                             </div>
-                          )}
+
+                            {item.cve_id && (
+                              <div className="text-[11px] text-zinc-500 mt-1 truncate">
+                                {item.cve_id}
+                              </div>
+                            )}
+                          </div>
                         </td>
-                        <td className="px-6 py-4">
+
+                        <td className="px-4 py-3">
                           <div className="text-sm flex items-center gap-2 text-zinc-700">
-                            <Server className="h-4 w-4 text-zinc-400" />
-                            <span title={item.instance_id}>
-                              {item.instance_id}
+                            <Server className="h-4 w-4 text-zinc-400 flex-shrink-0" />
+                            <span title={item.instance_id} className="truncate">
+                              {formatInstanceLabel(item.instance_id)}
                             </span>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-zinc-700">
-                            <div>{item.metric_name}</div>
-                            <div className="text-xs text-zinc-500">
-                              {item.namespace}
-                            </div>
+
+                        <td className="px-4 py-4">
+                          <div className="text-sm text-zinc-700 font-medium truncate">
+                            {item.namespace?.split("/Logs")[0] ||
+                              item.namespace}
                           </div>
                         </td>
-                        <td className="px-6 py-4">
+
+                        <td className="px-3 py-3 text-center">
                           <Badge
                             className={cn(
-                              "text-xs",
+                              "text-[11px] font-medium px-2.5 py-0.5 rounded-full",
                               severityColor[item.severity] ??
                                 "bg-zinc-100 text-zinc-500 border-zinc-200"
                             )}
@@ -246,11 +301,12 @@ export function MypageAiAnalysis({ initialIncidentId }: MypageAiAnalysisProps) {
                             {item.severity}
                           </Badge>
                         </td>
-                        <td className="px-6 py-4 text-sm text-zinc-500">
-                          {formatToKST(item.alarm_timestamp)}
+
+                        <td className="px-4 py-3 text-xs text-zinc-600 whitespace-nowrap">
+                          {formatDateTime(item.alarm_timestamp)}
                         </td>
-                        <td className="px-6 py-4 text-sm text-zinc-500">
-                          {formatToKST(item.analyzed_at)}
+                        <td className="px-4 py-3 text-xs text-zinc-600 whitespace-nowrap">
+                          {formatDateTime(item.analyzed_at)}
                         </td>
                       </tr>
                     ))}
@@ -258,21 +314,21 @@ export function MypageAiAnalysis({ initialIncidentId }: MypageAiAnalysisProps) {
                 </table>
               </div>
 
-              {/* 페이지네이션 */}
+              {/* 페이지네이션 - 스타일 개선 */}
               {totalPages > 1 && (
-                <div className="p-4 border-t border-zinc-200 bg-zinc-50 flex items-center justify-between">
-                  <div className="text-sm text-zinc-500">
+                <div className="p-4 border-t border-zinc-100 bg-zinc-50 flex items-center justify-between gap-4">
+                  <div className="text-xs text-zinc-500">
                     {startIndex + 1}-{Math.min(endIndex, incidents.length)} / 총{" "}
                     {incidents.length}건
                   </div>
 
                   <div className="flex items-center gap-2">
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1}
-                      className="gap-1 bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                      className="gap-1 px-2 text-xs text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 disabled:opacity-40 disabled:hover:bg-transparent"
                     >
                       <ChevronLeft className="h-4 w-4" />
                       이전
@@ -290,15 +346,15 @@ export function MypageAiAnalysis({ initialIncidentId }: MypageAiAnalysisProps) {
                               <Button
                                 key={page}
                                 variant={
-                                  currentPage === page ? "default" : "outline"
+                                  currentPage === page ? "default" : "ghost"
                                 }
-                                size="sm"
+                                size="icon"
                                 onClick={() => handlePageChange(page)}
                                 className={cn(
-                                  "w-9 h-9 p-0",
+                                  "w-8 h-8 rounded-full text-xs transition-colors",
                                   currentPage === page
-                                    ? "bg-zinc-900 text-white hover:bg-zinc-800"
-                                    : "bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                                    ? "bg-blue-600 text-white shadow-sm hover:bg-blue-700"
+                                    : "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100"
                                 )}
                               >
                                 {page}
@@ -309,8 +365,11 @@ export function MypageAiAnalysis({ initialIncidentId }: MypageAiAnalysisProps) {
                             page === currentPage + 3
                           ) {
                             return (
-                              <span key={page} className="px-2 text-zinc-400">
-                                ...
+                              <span
+                                key={page}
+                                className="px-1 text-zinc-400 text-xs"
+                              >
+                                …
                               </span>
                             );
                           }
@@ -320,11 +379,11 @@ export function MypageAiAnalysis({ initialIncidentId }: MypageAiAnalysisProps) {
                     </div>
 
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={currentPage === totalPages}
-                      className="gap-1 bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                      className="gap-1 px-2 text-xs text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 disabled:opacity-40 disabled:hover:bg-transparent"
                     >
                       다음
                       <ChevronRight className="h-4 w-4" />
@@ -413,14 +472,14 @@ export function MypageAiAnalysis({ initialIncidentId }: MypageAiAnalysisProps) {
                 <div className="text-zinc-500 mb-1">알람 발생 시각</div>
                 <div className="font-medium flex items-center gap-2 text-zinc-900">
                   <Clock className="h-4 w-4 text-zinc-400" />
-                  {formatToKST(selectedIncident.alarm_timestamp)}
+                  {formatDateTime(selectedIncident.alarm_timestamp)}
                 </div>
               </div>
               <div>
                 <div className="text-zinc-500 mb-1">분석 완료 시각</div>
                 <div className="font-medium flex items-center gap-2 text-zinc-900">
                   <Clock className="h-4 w-4 text-zinc-400" />
-                  {formatToKST(selectedIncident.analyzed_at)}
+                  {formatDateTime(selectedIncident.analyzed_at)}
                 </div>
               </div>
             </div>
