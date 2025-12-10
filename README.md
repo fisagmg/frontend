@@ -1,216 +1,252 @@
-# cvelabhub
-cve 학습 플랫폼의 프론트엔드 애플리케이션입니다.  
-React + TypeScript + Next.js 기반으로 구현되었고, **Feature-Sliced Design (FSD)** 아키텍처를 적용하여 전체 파일/폴더 구조와 책임을 명확히 구분했습니다.
+# 🚀 CVExpert Frontend  
+**CVE 취약점 학습 & 실습 플랫폼의 프론트엔드 애플리케이션**
+
+Next.js 기반 UI를 통해 다양한 CVE 취약점을 학습하고, VDI 기반 실습 환경에서 실제 공격을 재현해볼 수 있는 플랫폼입니다.
 
 ---
 
-## 🔍 주요 기술 스택
+## 📌 프로젝트 소개
 
-| 항목                 | 기술                                    |
-| ------------------ | ------------------------------------- |
-| **프레임워크**          | Next.js (React 기반)                    |
-| **언어**             | TypeScript                            |
-| **스타일 / UI**       | Tailwind CSS, shadcn/ui, Lucide Icons |
-| **상태 관리 / 데이터 패칭** | React Query, Zustand                  |
-| **라우팅 구조**         | Next.js App Router                    |
-| **아키텍처 패턴**        | Feature-Sliced Design (FSD)           |
-| **API 통신**         | Axios (REST API 연동)                   |
-| **코드 품질 / 포맷팅**    | ESLint, Prettier                      |
-| **디자인 협업 도구**      | Figma, v0                                 |
+**CVExpert Frontend**는  
+- **학습(Documentation)**  
+- **실습(VM 기반 PoC 환경)**  
+- **리포트 작성 및 관리**  
 
+까지 한 번에 제공하는 보안 실습 플랫폼의 프론트엔드입니다.
+
+Next.js + Tailwind CSS 기반 UI로 구성되어 있으며, Guacamole을 통해 사용자에게 브라우저 기반 원격 실습 환경을 제공합니다.
 
 ---
 
-## 🏗 아키텍처: Feature-Sliced Design (FSD)
+## ✨ 주요 기능
 
-FSD는 프론트엔드 애플리케이션을 **레이어(Layers)**, **슬라이스(Slices)**, **세그먼트(Segments)**로 나눠 규모가 커져도 유지보수성과 확장성을 확보하도록 돕는 구조입니다.
+### 🎓 1) 학습 모드
+- 다양한 **CVE 취약점 목록 조회 및 검색**
+- 연도/도메인/OS 등 **필터링 기능**
+- MDX 기반 상세 학습 문서 제공
+- 학습/실습 진행 현황 표시
 
-- **레이어(Layers)**: 앱 전체에서 책임 수준이 다른 상위 구조  
-  예: `app`, `pages`, `widgets`, `features`, `entities`, `shared`  
-- **슬라이스(Slices)**: 레이어 내 특정 비즈니스 도메인 또는 기능 단위  
-- **세그먼트(Segments)**: 슬라이스 내부에서 기술적 역할/책임별 폴더 (`ui`, `api`, `model`, `lib`, `consts`)  
-- **Public API 패턴**: 각 슬라이스/세그먼트는 외부 접근 가능한 인터페이스(`index.ts`)를 정의하여 내부 구현 숨김
+### 🧪 2) 실습 모드
+- **Guacamole**을 통한 원격 VDI 접속
+- VM에서 실제 취약점 공격 실습
+- 실습 타이머 및 자동 종료/연장 기능
+- 단계별 실습 가이드 제공
 
-이 구조 덕분에:
+### 📝 3) 리포트 관리
+- 템플릿 기반 리포트 작성/저장
+- 파일 업로드 및 다운로드
+- 리포트 상태 관리
 
-- 새로운 기능 추가 용이  
-- 리팩토링 시 영향 범위 명확  
-- 팀원 간 코드 위치 예측 가능  
+### 🤖 4) AI 분석 (관리자 전용)
+- 보안 인시던트 AI 분석
+- 자동 분석 리포트 생성
+
+### 👤 5) 사용자 관리
+- 이메일 인증 기반 회원가입
+- OTP 로그인
+- 마이페이지(이력/리포트/프로필)
+- 관리자 콘솔
+
+### 📰 6) 보안 뉴스
+- 보안 최신 뉴스 조회
+- 뉴스 상세정보 제공
 
 ---
 
+## 🛠 기술 스택
 
-## 📂 폴더 구조 예시
+### **Core**
+- Next.js 16  
+- React 19  
+- TypeScript 5  
+
+### **UI**
+- Tailwind CSS  
+- Radix UI  
+- Lucide Icons  
+- next-themes (Dark mode)
+
+### **상태 & 데이터**
+- React Hook Form  
+- Zod  
+- Context API  
+- Axios / Fetch API  
+
+### **문서 처리**
+- MDX  
+- remark-gfm  
+
+### **기타**
+- date-fns  
+- recharts  
+- sonner  
+- Vercel Analytics  
+
+---
+
+## 📁 프로젝트 구조
 
 ```
-src/
-├─ app/
-│  ├─ providers/          # QueryClientProvider, AuthProvider 등 글로벌 Provider
-│  ├─ routes/             # 라우터 설정
-│  ├─ styles/             # 글로벌 스타일, reset.css
-│  └─ index.tsx
+cve-labhub-frontend/
+├── app/
+│   ├── admin/
+│   ├── analysis/
+│   ├── lab/
+│   ├── learn/
+│   ├── login/
+│   ├── mypage/
+│   ├── news/
+│   ├── reports/
+│   ├── signup/
+│   ├── layout.tsx
+│   └── page.tsx
 │
-├─ pages/
-│  ├─ HomePage/
-│  │   └─ index.tsx       # 홈 (뉴스/최근 CVE/내 진행중 세션 등 조합)
-│  ├─ CVEListPage/
-│  │   └─ index.tsx       # CVE 전체 목록 페이지
-│  ├─ CVEDetailPage/
-│  │   └─ index.tsx       # 특정 CVE 상세+실습 시작 버튼
-│  ├─ LabSessionPage/
-│  │   └─ index.tsx       # VM 세션 화면 (타이머, 터미널 안내 등)
-│  ├─ MyReportsPage/
-│  │   └─ index.tsx       # 내가 쓴 보고서 목록/열람
-│  └─ LoginPage/
-│      └─ index.tsx
+├── components/
+│   ├── ui/
+│   ├── cve-card.tsx
+│   ├── action-cards.tsx
+│   ├── header.tsx
+│   └── footer.tsx
 │
-├─ widgets/
-│  ├─ MainHeader/
-│  │   └─ MainHeader.tsx      # 상단 Navbar (프로필, 로그아웃, 알림 등)
-│  ├─ SidebarNav/
-│  │   └─ SidebarNav.tsx      # 좌측 사이드바 (CVE / 실습 / 보고서 / 마이페이지)
-│  ├─ CVEOverviewSection/
-│  │   ├─ CVEOverviewSection.tsx  # 홈에 쓰는 "핫한 취약점 TOP5" 블록
-│  │   └─ model.ts
-│  ├─ ActiveSessionCard/
-│  │   └─ ActiveSessionCard.tsx   # "현재 진행중인 실습 세션" 카드
-│  └─ UserSummaryPanel/
-│      └─ UserSummaryPanel.tsx    # 마이페이지 상단 요약(완료한 실습 수 등)
+├── lib/
+│   ├── api.ts
+│   ├── auth-context.tsx
+│   └── utils.ts
 │
-├─ features/
-│  ├─ auth/
-│  │   ├─ ui/
-│  │   │   └─ LoginForm.tsx       # 아이디/비번 입력 폼
-│  │   ├─ model/
-│  │   │   ├─ useLogin.ts         # 로그인 mutate 훅
-│  │   │   └─ authStore.ts        # zustand or context slice
-│  │   └─ api/
-│  │       └─ loginApi.ts         # /api/auth/login 호출
-│  │
-│  ├─ startLabSession/
-│  │   ├─ ui/
-│  │   │   └─ StartLabButton.tsx  # "실습 시작" 버튼
-│  │   ├─ model/
-│  │   │   └─ useStartSession.ts  # 세션 생성 요청 훅
-│  │   └─ api/
-│  │       └─ startSessionApi.ts  # POST /api/lab-sessions
-│  │
-│  ├─ submitReport/
-│  │   ├─ ui/
-│  │   │   └─ ReportEditor.tsx    # 보고서 작성/편집 컴포넌트 (제목, 단계, 결과 등)
-│  │   ├─ model/
-│  │   │   └─ useSubmitReport.ts  # 제출 요청 훅
-│  │   └─ api/
-│  │       └─ reportApi.ts        # POST /api/reports
-│  │
-│  ├─ cveFilters/
-│  │   ├─ ui/
-│  │   │   └─ CVEFilterBar.tsx    # 심각도 / OS / 태그 필터 UI
-│  │   ├─ model/
-│  │   │   ├─ useCVEFilterStore.ts  # zustand 상태관리 (riskLevel, tag 등)
-│  │   │   └─ buildQueryParams.ts  # 필터 → 쿼리스트링 변환
-│  │   └─ lib/
-│  │       └─ severityColor.ts    # 심각도 배지 색 결정 로직
-│  │
-│  └─ sessionTimer/
-│      ├─ ui/
-│      │   └─ SessionTimer.tsx    # "남은 시간 29:31" 이런 타이머 UI
-│      ├─ model/
-│      │   └─ useCountdown.ts     # 타이머 훅
-│      └─ lib/
-│          └─ formatTime.ts       # 초 → mm:ss
-│
-├─ entities/
-│  ├─ cve/
-│  │   ├─ ui/
-│  │   │   ├─ CVECard.tsx         # CVE 요약 카드 (ID, CVSS, 설명)
-│  │   │   └─ CVESeverityBadge.tsx
-│  │   ├─ model/
-│  │   │   ├─ cveTypes.ts         # 타입 정의 { id, cvss, summary, tags... }
-│  │   │   ├─ useCVEList.ts       # react-query로 CVE 목록 fetch
-│  │   │   └─ useCVEDetail.ts     # 특정 CVE 상세 fetch
-│  │   └─ api/
-│  │       ├─ fetchCVEList.ts     # GET /api/cves
-│  │       └─ fetchCVEDetail.ts   # GET /api/cves/:id
-│  │
-│  ├─ session/
-│  │   ├─ ui/
-│  │   │   └─ SessionStatusBadge.tsx   # RUNNING / EXPIRED / DONE 등 상태 뱃지
-│  │   ├─ model/
-│  │   │   ├─ sessionTypes.ts         # {sessionId, cveId, expiresAt...}
-│  │   │   └─ useSessionInfo.ts       # 현재 세션 정보 불러오기
-│  │   └─ api/
-│  │       └─ fetchSessionInfo.ts     # GET /api/lab-sessions/:id
-│  │
-│  ├─ report/
-│  │   ├─ ui/
-│  │   │   └─ ReportListItem.tsx      # 마이페이지 보고서 목록에서 한 줄
-│  │   ├─ model/
-│  │   │   ├─ reportTypes.ts
-│  │   │   └─ useMyReports.ts         # GET /api/reports?userId=me
-│  │   └─ api/
-│  │       └─ fetchMyReports.ts
-│  │
-│  └─ user/
-│      ├─ ui/
-│      │   └─ UserAvatar.tsx          # 프로필 이미지/이름
-│      ├─ model/
-│      │   ├─ userTypes.ts
-│      │   └─ useCurrentUser.ts       # 현재 로그인 유저 정보
-│      └─ api/
-│          └─ fetchCurrentUser.ts
-│
-├─ shared/
-│  ├─ ui/
-│  │   ├─ Button.tsx
-│  │   ├─ Card.tsx
-│  │   ├─ Modal.tsx
-│  │   └─ Input.tsx
-│  ├─ hooks/
-│  │   ├─ useToggle.ts
-│  │   └─ useDebounce.ts
-│  ├─ api/
-│  │   └─ httpClient.ts              # axios/fetch wrapper, 공통 인터셉터
-│  ├─ lib/
-│  │   ├─ formatDate.ts
-│  │   └─ cn.ts                       # className merge util (tailwind용)
-│  └─ config/
-│      └─ constants.ts               # BASE_URL, SESSION_MAX_MINUTES 등
-│
-└─ index.tsx / main.tsx
+├── hooks/
+├── types/
+├── public/
+├── styles/
+└── ...
 ```
+
 ---
 
-## 🚀 시작 및 개발 가이드
+## 🚀 설치 및 실행
 
-### 개발 환경 세팅
-
-1. 레포지토리 클론  
+### 1) 의존성 설치
 ```bash
-git clone https://github.com/fisagmg/frontend.git
- ```
+npm install
+```
 
-2. 의존성 설치
+### 2) 개발 서버 실행
+```bash
+npm run dev
+```
 
-  ```
-  npm install
-  ```
+### 3) 프로덕션 빌드 및 실행
+```bash
+npm run build
+npm start
+```
 
-3. 개발 서버 실행
-  
-  ```
-  npm run dev
-  ```
+---
 
-4. 빌드
-  
-  ```
-  npm run build
-  ```
+## 🔐 환경 변수
 
-**코드 규칙**
+`.env.local` 파일 생성 후 입력:
 
-- 코드 스타일: ESLint + TypeScript 설정 사용
-- FSD 계층/슬라이스/세그먼트 규칙 준수
-- 일반 유틸, 재사용 UI 요소 등은 shared 레이어에 위치
+```env
+NEXT_PUBLIC_API_BASE=http://localhost:8082
+```
+
+| 변수명 | 설명 |
+|--------|------|
+| `NEXT_PUBLIC_API_BASE` | 백엔드 API 서버 URL |
+
+---
+
+## 📄 주요 페이지
+
+### 🏠 Home (`/`)
+- 플랫폼 소개  
+- 뉴스 하이라이트  
+- 학습/실습 바로가기  
+
+### 📘 Learn (`/learn`)
+- CVE 리스트 조회  
+- 연도/도메인/OS 필터  
+- 검색 기능  
+
+### 💻 Lab (`/lab`)
+- 실습 VM 생성 및 접속  
+- Guacamole 연동  
+- 타이머 & 세션 관리  
+- 가이드 패널  
+
+### 👤 MyPage (`/mypage`)
+- 실습 이력  
+- 리포트 관리  
+- 프로필 수정  
+- 관리자 기능  
+
+### 📝 Reports (`/reports`)
+- 작성/수정  
+- 파일 업로드  
+
+### 📰 News (`/news`)
+- 최신 보안 뉴스 조회  
+
+---
+
+## 📷 시연 화면
+
+> 시연 사진(GIF/PNG 등)을 아래 영역에 삽입하세요.
+
+### 🧪 실습 환경 화면
+<!--  
+![Lab Demo](./assets/demo-lab.png)  
+-->
+
+### 🎓 학습 페이지 화면
+<!--  
+![Learn Page](./assets/demo-learn.png)  
+-->
+
+### 📝 리포트 작성 화면
+<!--  
+![Report Page](./assets/demo-report.png)  
+-->
+
+### 👤 마이페이지
+<!--  
+![MyPage](./assets/demo-mypage.png)  
+-->
+
+---
+
+## 💻 개발 가이드
+
+### 코드 스타일
+- TypeScript 기반
+- ESLint + Prettier 적용
+- 컴포넌트 단일 책임 원칙 준수
+
+### 컴포넌트 구조
+- 공통 UI → `components/ui/`  
+- 도메인별 컴포넌트 → `components/`  
+
+### API 사용 규칙
+- 모든 API 요청은 `lib/api.ts`에서 관리
+- Axios 인스턴스 기반 토큰 자동 첨부
+
+### 인증 처리
+- 인증 상태는 Context API로 관리
+- 보호 페이지는 `AuthGuard`로 접근 제한
+
+### 스타일링
+- Tailwind CSS 사용  
+- next-themes로 다크 모드 지원  
+- 모바일 반응형 구성  
+
+---
+
+## 🤝 기여 방법
+
+1. 프로젝트 Fork  
+2. 기능 개발 브랜치 생성  
+3. 커밋 후 PR 생성  
+4. 코드 리뷰 진행  
+
+---
 
